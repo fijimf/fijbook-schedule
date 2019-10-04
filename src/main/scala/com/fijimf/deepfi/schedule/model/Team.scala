@@ -14,6 +14,8 @@ object Team {
     val colString: String = cols.mkString(", ")
     val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM team """
 
+    def prefixedCols(p:String): Array[String] = cols.map(s=>p+"."+s)
+    def prefixedQuery(p:String): Fragment = fr"""SELECT """ ++ Fragment.const(prefixedCols(p).mkString(",")) ++ fr""" FROM team """
 
     def insert(t: Team): doobie.Update0 =
       sql"""
@@ -33,7 +35,7 @@ object Team {
        WHERE key = $k
       """).query[Team]
 
-    def findByAlias(k: String): doobie.Query0[Team] = (baseQuery ++
+    def findByAlias(k: String): doobie.Query0[Team] = (prefixedQuery("team") ++
       fr"""
        INNER JOIN alias ON team.id = alias.team_id
        WHERE key = alias.alias

@@ -28,6 +28,13 @@ class TeamSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker {
   test("find") {
     check(Team.Dao.find(99L))
   }
+  test("findByAlias") {
+    check(Team.Dao.findByAlias("southern-cal"))
+  }
+
+  test("findByKey") {
+    check(Team.Dao.findByKey("usc"))
+  }
 
   test("delete") {
     check(Team.Dao.delete(99L))

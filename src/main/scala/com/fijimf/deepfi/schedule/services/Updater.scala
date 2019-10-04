@@ -27,18 +27,21 @@ class Updater [F[_] : Sync](xa: Transactor[F]) {
   }
 
   private def insertOrUpdate(pg: ProposedGame, s: Season, ht: Team, at: Team): F[Game] = {
+    import Game.Dao._
     for {
       og <- findMatch(pg.date, s, ht, at)
-    } yield {
-      og match {
+      fg <- og match {
         case Some(g) =>
           val g1: Game = g.copy(time = pg.dateTime, location = pg.location, isNeutral = pg.isNeutral)
-          Game.Dao.update(g1).withUniqueGeneratedKeys[Game](Game.Dao.cols: _*).transact(xa)
+          update(g1).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
         case None =>
           val g0: Game = Game(0L, s.id, pg.date, pg.dateTime, ht.id, at.id, pg.location, pg.isNeutral)
-          Game.Dao.insert(g0).withUniqueGeneratedKeys[Game](Game.Dao.cols: _*).transact(xa)
+          insert(g0).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
       }
+    } yield {
+      fg
     }
+
   }
 
   def loadTeam(key: String): OptionT[F, Team] = OptionT(for {

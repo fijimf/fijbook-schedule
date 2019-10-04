@@ -35,7 +35,7 @@ object Game {
 
     def findByDateTeams(date: LocalDate, homeTeamId:Long, awayTeamId: Long): doobie.Query0[Game] = (baseQuery ++
       fr"""
-       WHERE date = $date nad home_team_id=${homeTeamId} and away_team_id=${awayTeamId}
+       WHERE date = $date and home_team_id=${homeTeamId} and away_team_id=${awayTeamId}
       """).query[Game]
 
     def list(): doobie.Query0[Game] = baseQuery.query[Game]

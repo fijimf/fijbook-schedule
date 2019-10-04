@@ -31,6 +31,10 @@ class SeasonSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker 
     check(Season.Dao.find(99L))
   }
 
+  test("findByDate") {
+    check(Season.Dao.findByDate(LocalDateTime.now()))
+  }
+
   test("delete") {
     check(Season.Dao.delete(99L))
   }

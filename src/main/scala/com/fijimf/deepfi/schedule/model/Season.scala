@@ -1,8 +1,10 @@
 package com.fijimf.deepfi.schedule.model
 
-import doobie.util.update.Update0
+import java.time.LocalDateTime
+
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import doobie.util.update.Update0
 
 final case class Season(id: Long, year: Int) {
 
@@ -28,6 +30,19 @@ object Season {
       fr"""
        WHERE id = $id
       """).query[Season]
+
+    // A date is in season yyyy id=f it is after 10/31/yyyy-1 and before 5/1/yyyy
+    def findByDate(d: LocalDateTime): doobie.Query0[Season] = {
+      val y = d.getMonthValue match {
+        case m if m < 5 => d.getYear
+        case m if m > 10 => d.getYear + 1
+        case _ => -1
+      }
+      (baseQuery ++
+        fr"""
+       WHERE year = $y
+      """).query[Season]
+    }
 
     def list(): doobie.Query0[Season] = baseQuery.query[Season]
 

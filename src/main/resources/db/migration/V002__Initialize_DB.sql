@@ -36,7 +36,8 @@ CREATE TABLE game
     home_team_id    BIGINT       NOT NULL,
     away_team_id    BIGINT       NOT NULL,
     location        VARCHAR(128) NULL,
-    is_neutral      BOOLEAN      NULL
+    is_neutral      BOOLEAN      NULL,
+    load_key        VARCHAR(32)  NOT NULL
 );
 CREATE UNIQUE INDEX ON game (date, home_team_id, away_team_id);
 

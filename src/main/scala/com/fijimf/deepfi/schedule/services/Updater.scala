@@ -11,12 +11,12 @@ import doobie.util.transactor.Transactor
 
 class Updater [F[_] : Sync](xa: Transactor[F]) {
 
-  def upsertGame(pg: ProposedGame): F[Option[Game]] = {
+  def upsertGame(pg: ProposedGame, loadKey: String): F[Option[Game]] = {
     (for {
       ht <- loadTeam(pg.homeKey)
       at <- loadTeam(pg.awayKey)
       s <- findSeason(pg.dateTime)
-      g <- OptionT.liftF(insertOrUpdate(pg, s, ht, at))
+      g <- OptionT.liftF(insertOrUpdate(pg, s, ht, at, loadKey))
     } yield {
       g
     }).value
@@ -26,16 +26,16 @@ class Updater [F[_] : Sync](xa: Transactor[F]) {
     Game.Dao.findByDateTeams(d, ht.id, at.id).option.transact(xa)
   }
 
-  private def insertOrUpdate(pg: ProposedGame, s: Season, ht: Team, at: Team): F[Game] = {
+  private def insertOrUpdate(pg: ProposedGame, s: Season, ht: Team, at: Team, loadKey: String): F[Game] = {
     import Game.Dao._
     for {
       og <- findMatch(pg.date, s, ht, at)
       fg <- og match {
         case Some(g) =>
-          val g1: Game = g.copy(time = pg.dateTime, location = pg.location, isNeutral = pg.isNeutral)
+          val g1: Game = g.copy(time = pg.dateTime, location = pg.location, isNeutral = pg.isNeutral, loadKey = loadKey)
           update(g1).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
         case None =>
-          val g0: Game = Game(0L, s.id, pg.date, pg.dateTime, ht.id, at.id, pg.location, pg.isNeutral)
+          val g0: Game = Game(0L, s.id, pg.date, pg.dateTime, ht.id, at.id, pg.location, pg.isNeutral, loadKey)
           insert(g0).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
       }
     } yield {

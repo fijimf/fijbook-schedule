@@ -19,7 +19,7 @@ class GameSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker {
   )
 
   test("insert") {
-    check(Game.Dao.insert(Game(0L, 1L, LocalDate.now(), LocalDateTime.now(), 5L, 7L, Some("MCI Center"), None)))
+    check(Game.Dao.insert(Game(0L, 1L, LocalDate.now(), LocalDateTime.now(), 5L, 7L, Some("MCI Center"), None,"20110302")))
   }
 
   test("list") {
@@ -39,6 +39,6 @@ class GameSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker {
   }
 
   test("update") {
-    check(Game.Dao.update(Game(83L, 1L, LocalDate.now(), LocalDateTime.now(), 5L, 7L, Some("MCI Center"), None)))
+    check(Game.Dao.update(Game(83L, 1L, LocalDate.now(), LocalDateTime.now(), 5L, 7L, Some("MCI Center"), None,"20190911")))
   }
 }

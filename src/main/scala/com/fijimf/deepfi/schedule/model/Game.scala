@@ -14,13 +14,11 @@ final case class Game(id: Long, seasonId: Long, date: LocalDate, time: LocalDate
 
 object Game {
 
-  object Dao {
+  object Dao extends AbstractDao {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Timestamp].imap(ts => ts.toLocalDateTime)(ldt => Timestamp.valueOf(ldt))
 
     val cols: Array[String] = Array("id", "season_id", "date", "time", "home_team_id", "away_team_id", "location", "is_neutral")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM game """
-
+   val tableName= "game"
     def insert(g: Game): Update0 =
       sql"""
     INSERT INTO game(season_id, date,time,home_team_id,away_team_id,location, is_neutral )

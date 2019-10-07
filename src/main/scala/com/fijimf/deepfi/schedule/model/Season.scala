@@ -3,7 +3,6 @@ package com.fijimf.deepfi.schedule.model
 import java.time.LocalDateTime
 
 import doobie.implicits._
-import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
 
 final case class Season(id: Long, year: Int) {
@@ -12,10 +11,9 @@ final case class Season(id: Long, year: Int) {
 
 object Season {
 
-  object Dao {
+  object Dao extends AbstractDao {
     val cols: Array[String] = Array("id", "year")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM season """
+    val tableName: String = "season"
 
     def insert(s: Season): Update0 = {
       sql"""

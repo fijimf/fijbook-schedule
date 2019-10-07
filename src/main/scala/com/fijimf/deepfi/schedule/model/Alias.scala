@@ -10,11 +10,9 @@ final case class Alias(id: Long, teamId: Long, alias: String) {
 
 object Alias {
 
-  object Dao {
+  object Dao extends AbstractDao {
     val cols: Array[String] = Array("id", "team_id", "alias")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM alias """
-
+    val tableName: String = "alias"
     def insert(a: Alias): Update0 =
       sql"""
     INSERT INTO alias(team_id, alias) VALUES (${a.teamId}, ${a.alias})

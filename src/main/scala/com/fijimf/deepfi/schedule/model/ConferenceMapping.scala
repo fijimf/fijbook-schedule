@@ -10,11 +10,9 @@ final case class ConferenceMapping(id: Long, seasonId: Long, teamId: Long, confe
 
 object ConferenceMapping {
 
-  object Dao {
+  object Dao extends AbstractDao {
     val cols: Array[String] = Array("id", "season_id", "team_id", "conference_id")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM conference_mapping """
-
+    val tableName="conference_mapping"
 
     def insert(cm: ConferenceMapping): Update0 =
       sql"""

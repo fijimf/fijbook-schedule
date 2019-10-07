@@ -11,11 +11,9 @@ final case class Result(id: Long, gameId: Long, homeScore: Int, awayScore: Int, 
 
 object Result {
 
-  object Dao {
+  object Dao extends AbstractDao {
     val cols: Array[String] = Array("id", "game_id", "home_score", "away_score", "num_periods")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM result """
-
+    val tableName = "result"
     def insert(r: Result): Update0 =
       sql"""
     INSERT INTO result(game_id, home_score, away_score, num_periods)

@@ -9,13 +9,9 @@ final case class Team(id: Long, key: String, name: String, nickname: String, log
 
 object Team {
 
-  object Dao {
+  object Dao extends AbstractDao {
     val cols: Array[String] = Array("id", "key", "name", "nickname", "logo_url", "color1", "color2")
-    val colString: String = cols.mkString(", ")
-    val baseQuery: Fragment = fr"""SELECT """ ++ Fragment.const(colString) ++ fr""" FROM team """
-
-    def prefixedCols(p:String): Array[String] = cols.map(s=>p+"."+s)
-    def prefixedQuery(p:String): Fragment = fr"""SELECT """ ++ Fragment.const(prefixedCols(p).mkString(",")) ++ fr""" FROM team """
+    val tableName = "team"
 
     def insert(t: Team): doobie.Update0 =
       sql"""

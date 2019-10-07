@@ -33,6 +33,9 @@ class GameSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker {
   test("findByDateTeams") {
     check(Game.Dao.findByDateTeams(LocalDate.now(), 1L,2L))
   }
+  test("findByLoadKey") {
+    check(Game.Dao.findByLoadKey("20190923"))
+  }
 
   test("delete") {
     check(Game.Dao.delete(99L))

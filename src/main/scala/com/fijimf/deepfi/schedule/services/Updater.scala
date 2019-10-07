@@ -5,11 +5,29 @@ import java.time.{LocalDate, LocalDateTime}
 import cats.data.OptionT
 import cats.effect.Sync
 import cats.implicits._
-import com.fijimf.deepfi.schedule.model.{Game, ProposedGame, Season, Team}
+import cats.kernel.Eq
+import com.fijimf.deepfi.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
-class Updater [F[_] : Sync](xa: Transactor[F]) {
+class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
+
+  implicit val eqGame: Eq[Game] = Eq.fromUniversalEquals
+  /** Update games and results is a little subtle
+   * 1) A 'loadKey' is the key used by the scraping model to break up the updates.  Typically it is by date, but scraping date is not the same as game date -- Hawaii night games.
+   * 2) For a given loadKey we want to
+   *    - insert any games which are missing
+   *    - update any games which already exist and are different
+   *    - delete any games which are not in the set of proposed games
+   *
+   * 3) We can't simply do delete/insert because we need game_id to be stable.
+   */
+  def updateGamesAndResults(pgs: List[ProposedGame], pgrs: List[ProposedGameResult], loadKey: String): Unit = {
+
+
+
+  }
+
 
   def upsertGame(pg: ProposedGame, loadKey: String): F[Option[Game]] = {
     (for {
@@ -28,15 +46,19 @@ class Updater [F[_] : Sync](xa: Transactor[F]) {
 
   private def insertOrUpdate(pg: ProposedGame, s: Season, ht: Team, at: Team, loadKey: String): F[Game] = {
     import Game.Dao._
+    val game: Game = pg.toGame(0L, s.id, ht.id, at.id, loadKey)
     for {
       og <- findMatch(pg.date, s, ht, at)
       fg <- og match {
         case Some(g) =>
-          val g1: Game = g.copy(time = pg.dateTime, location = pg.location, isNeutral = pg.isNeutral, loadKey = loadKey)
-          update(g1).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
+          val g1: Game = game.copy(id = g.id)
+          if (g =!= g1) {
+            update(g1).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
+          } else {
+            F.pure(g1)
+          }
         case None =>
-          val g0: Game = Game(0L, s.id, pg.date, pg.dateTime, ht.id, at.id, pg.location, pg.isNeutral, loadKey)
-          insert(g0).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
+          insert(game).withUniqueGeneratedKeys[Game](cols: _*).transact(xa)
       }
     } yield {
       fg

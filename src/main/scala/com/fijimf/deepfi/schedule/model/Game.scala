@@ -7,8 +7,10 @@ import doobie.implicits._
 import doobie.util.Meta
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
+import org.apache.commons.codec.digest.DigestUtils
 
 final case class Game(id: Long, seasonId: Long, date: LocalDate, time: LocalDateTime, homeTeamId: Long, awayTeamId: Long, location: Option[String], isNeutral: Option[Boolean], loadKey: String) {
+
 
 }
 
@@ -38,11 +40,6 @@ object Game {
     def find(id: Long): doobie.Query0[Game] = (baseQuery ++
       fr"""
        WHERE id = $id
-      """).query[Game]
-
-    def findByDateTeams(date: LocalDate, homeTeamId:Long, awayTeamId: Long): doobie.Query0[Game] = (baseQuery ++
-      fr"""
-       WHERE date = $date and home_team_id=${homeTeamId} and away_team_id=${awayTeamId}
       """).query[Game]
 
     def findByLoadKey(loadKey: String): doobie.Query0[(Game, Option[Result])] =

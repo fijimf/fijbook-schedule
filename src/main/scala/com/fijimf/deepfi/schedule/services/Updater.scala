@@ -30,6 +30,7 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       gMap <- loadGamesAndResults(loadKey)
       deletes = findDeletes(pgList, gMap)
       mods = findMods(pgList, gMap, loadKey)
+      _ <- deletes.traverse(d => Result.Dao.deleteByGameId(d.id).run).transact(xa)
       _ <- deletes.traverse(d => Game.Dao.delete(d.id).run).transact(xa)
       _ <- mods.traverse(g => if (g.id === 0L) Game.Dao.insert(g).run else Game.Dao.update(g).run).transact(xa)
 

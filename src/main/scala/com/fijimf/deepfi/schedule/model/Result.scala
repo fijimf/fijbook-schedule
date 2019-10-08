@@ -39,6 +39,11 @@ object Result {
         DELETE FROM result where id=${id}
       """.update
 
+    def deleteByGameId(gameId: Long): doobie.Update0 =
+      sql"""
+        DELETE FROM result where game_id=${gameId}
+      """.update
+
     def update(r:Result): doobie.Update0 = sql"""
       UPDATE result SET game_id=${r.gameId},  home_score=${r.homeScore},  away_score=${r.awayScore},  num_periods =${r.numPeriods}
       WHERE id = ${r.id}

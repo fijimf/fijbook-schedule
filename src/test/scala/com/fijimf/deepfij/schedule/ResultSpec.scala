@@ -35,6 +35,10 @@ class ResultSpec extends FunSuite with Matchers with doobie.scalatest.IOChecker 
     check(Result.Dao.delete(99L))
   }
 
+  test("deleteByGameId") {
+    check(Result.Dao.deleteByGameId(99L))
+  }
+
   test("update") {
     check(Result.Dao.insert(Result(3L, 1L, 92,67,2)))
   }

@@ -28,7 +28,8 @@ lazy val root = (project in file("."))
       "ch.qos.logback"  %  "logback-classic"     % LogbackVersion,
       "com.typesafe"    %  "config"              % TypesafeConfVersion,
       "org.flywaydb"    % "flyway-core"          % FlywayVersion,
-      "commons-codec"   % "commons-codec"        % "1.13"
+      "commons-codec"   % "commons-codec"        % "1.13",
+      "com.spotify"     % "docker-client"        % "8.14.0"
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0")

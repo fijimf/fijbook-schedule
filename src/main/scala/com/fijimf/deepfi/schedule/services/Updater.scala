@@ -23,8 +23,9 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
    *    - delete any games which are not in the set of proposed games
    *
    * 3) We can't simply do delete/insert because we need game_id to be stable.
+   *
    */
-  def updateGamesAndResults(pgs: List[ProposedGame], pgrs: List[ProposedGameResult], loadKey: String): F[(List[Game], List[Game], List[Game])] = {
+  def updateGamesAndResults(pgs: List[UpdateCandidate], loadKey: String): F[(List[Game], List[Game], List[Game])] = {
     for {
       pgList <- findKeys(pgs)
       gMap <- loadGamesAndResults(loadKey)
@@ -39,7 +40,7 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     }
   }
 
-  def findDeletes(pgList: List[(MatchKey, ProposedGame)], gMap: Map[MatchKey, (Game, Option[Result])]): List[Game] = {
+  def findDeletes(pgList: List[(MatchKey, UpdateCandidate)], gMap: Map[MatchKey, (Game, Option[Result])]): List[Game] = {
     val updateKeys: List[MatchKey] = pgList.map(_._1)
     gMap
       .filter { case (k, _) => updateKeys.contains(k) }
@@ -48,15 +49,16 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       .toList
   }
 
-  def findMods(pgList: List[(MatchKey, ProposedGame)], gMap: Map[MatchKey, (Game, Option[Result])], loadKey: String): List[Game] = {
+  def findMods(pgList: List[(MatchKey, UpdateCandidate)], gMap: Map[MatchKey, (Game, Option[Result])], loadKey: String): List[Game] = {
     pgList.flatMap { case (k, v) =>
       gMap.get(k) match {
-        case Some((g, _)) =>
+        case Some((g, optR)) =>
           val update: Game = v.toGame(g.id, k.seasonId, k.homeTeamId, k.awayTeamId, loadKey)
-          if (update === g)
+          val xxx=if (update === g)
             List.empty[Game]
           else
             List(update)
+          xxx
         case None =>
           val insert: Game = v.toGame(0L, k.seasonId, k.homeTeamId, k.awayTeamId, loadKey)
           List(insert)
@@ -64,11 +66,11 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     }
   }
 
-  def findKeys(pgs: List[ProposedGame]): F[List[(MatchKey, ProposedGame)]] = {
+  def findKeys(pgs: List[UpdateCandidate]): F[List[(MatchKey, UpdateCandidate)]] = {
     pgs.map(findKeysForGame).sequence.map(_.flatten)
   }
 
-  private def findKeysForGame(pg: ProposedGame): F[List[(MatchKey, ProposedGame)]] = {
+  private def findKeysForGame(pg: UpdateCandidate): F[List[(MatchKey, UpdateCandidate)]] = {
 
     (for {
       ht <- loadTeam(pg.homeKey)

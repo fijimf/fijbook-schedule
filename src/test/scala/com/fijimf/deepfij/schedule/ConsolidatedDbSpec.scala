@@ -325,65 +325,123 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
 
   describe("Schedule repo ops") {
     val repo = new ScheduleRepo[IO](transactor)
+    describe("Alias ops") {
+      it("should list all aliases") {
+        (for {
+          aliasList <- repo.listAliases()
+        } yield {
+          assert(aliasList.size >= 0)
+        }).unsafeRunSync()
+      }
 
-    it("should list all aliases") {
-      (for {
-        aliasList <- repo.listAliases()
-      } yield {
-        assert(aliasList.size >= 0)
-      }).unsafeRunSync()
-    }
+      it("should insert an alias") {
+        (for {
+          aliasList0 <- repo.listAliases()
+          a <- repo.insertAlias(Alias(0L, 32L, "st. johns"))
+          aliasList1 <- repo.listAliases()
+        } yield {
+          assert(a.id > 0L)
+          assert(aliasList1.size >= aliasList0.size)
+          assert(aliasList1.contains(a))
+        }).unsafeRunSync()
+      }
 
-    it("should insert an alias") {
-      (for {
-        aliasList0 <- repo.listAliases()
-        a<-repo.insertAlias(Alias(0L,32L,"st. johns"))
-        aliasList1 <- repo.listAliases()
-      } yield {
-        assert(a.id>0L)
-        assert(aliasList1.size >= aliasList0.size)
-        assert(aliasList1.contains(a))
-      }).unsafeRunSync()
-    }
+      it("should find aliases") {
+        (for {
+          a <- repo.insertAlias(Alias(0L, 32L, "st. francis"))
+          a1 <- repo.findAlias(a.id)
+          ax <- repo.findAlias(-999L)
+        } yield {
+          assert(a1 === Some(a))
+          assert(ax.isEmpty)
+        }).unsafeRunSync()
+      }
 
-    it("should find aliases") {
-      (for {
-        a<-repo.insertAlias(Alias(0L,32L,"st. francis"))
-        a1<-repo.findAlias(a.id)
-        ax<- repo.findAlias(-999L)
-      } yield {
-        assert(a1 === Some(a))
-        assert(ax.isEmpty)
-      }).unsafeRunSync()
-    }
+      it("should update an alias") {
+        (for {
+          a <- repo.insertAlias(Alias(0L, 32L, "usc"))
+          a1 <- repo.findAlias(a.id)
+          a2 <- repo.updateAlias(a.copy(alias = "southern cal"))
+          a3 <- repo.findAlias(a.id)
+        } yield {
+          assert(a1 === Some(a))
+          assert(!(a === a2))
+          assert(a3 === Some(a2))
+        }).unsafeRunSync()
+      }
 
-    it("should update an alias") {
-      (for {
-        a<-repo.insertAlias(Alias(0L,32L,"usc"))
-        a1<-repo.findAlias(a.id)
-        a2<-repo.updateAlias(a.copy(alias="southern cal"))
-        a3<- repo.findAlias(a.id)
-      } yield {
-        assert(a1 === Some(a))
-        assert(!(a === a2))
-        assert(a3 === Some(a2))
-      }).unsafeRunSync()
+      it("should delete an alias") {
+        (for {
+          a <- repo.insertAlias(Alias(0L, 32L, "villanova"))
+          list1 <- repo.listAliases()
+          n <- repo.deleteAlias(a.id)
+          list2 <- repo.listAliases()
+          m <- repo.deleteAlias(-999L)
+        } yield {
+          assert(list1.contains(a))
+          assert(n === 1)
+          assert(!list2.contains(a))
+          assert(m === 0)
+        }).unsafeRunSync()
+      }
     }
+    describe("Conference ops"){
 
-    it("should delete an alias") {
-      (for {
-        a<-repo.insertAlias(Alias(0L,32L,"villanova"))
-        list1<-repo.listAliases()
-        n<- repo.deleteAlias(a.id)
-        list2<-repo.listAliases()
-        m<- repo.deleteAlias(-999L)
-      } yield {
-        assert(list1.contains(a))
-        assert(n === 1)
-        assert(!list2.contains(a))
-        assert(m === 0)
-      }).unsafeRunSync()
     }
+    describe("ConferenceMapping ops"){
+
+    }
+    describe("Game ops"){
+
+    }
+    describe("Result ops"){
+
+    }
+    describe("Season ops"){
+
+      it("should list seasons"){
+        (for {
+          seasonList <- repo.listSeason()
+        } yield {
+          assert(seasonList.size >= 0)
+        }).unsafeRunSync()
+      }
+
+      it ("should insert a season"){
+        (for {
+          seasonList <- repo.listSeason()
+          s<- repo.insertSeason(Season(0L, 2014))
+          seasonList1<-repo.listSeason()
+        } yield {
+          assert(s.id >0L)
+          assert(seasonList.size+1===seasonList1.size)
+          assert(seasonList1.contains(s))
+        }).unsafeRunSync()
+      }
+
+      it ("should find a season"){
+        (for {
+          s<- repo.insertSeason(Season(0L, 2013))
+          s1<-repo.findSeason(s.id)
+          sx<-repo.findSeason(-999L)
+        } yield {
+          assert(s1===Some(s))
+          assert(sx.isEmpty)
+        }).unsafeRunSync()
+      }
+
+
+    }
+    describe("Team ops"){
+
+    }
+  }
+
+  describe("Snapshotter"){
+
+  }
+
+  describe("Updater"){
 
   }
 }

@@ -140,7 +140,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listSeason(): F[List[Season]] = Season.Dao.list().to[List].transact(xa)
 
-  def findSeason(id: Long): F[Season] = Season.Dao.find(id).unique.transact(xa)
+  def findSeason(id: Long): F[Option[Season]] = Season.Dao.find(id).option.transact(xa)
 
   def insertTeam(t: Team): F[Team] = {
     import Team.Dao._

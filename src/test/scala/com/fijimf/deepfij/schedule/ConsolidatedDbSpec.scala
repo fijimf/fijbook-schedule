@@ -6,6 +6,7 @@ import java.util
 
 import cats.effect.{ContextShift, IO, Resource}
 import com.fijimf.deepfi.schedule.model._
+import com.fijimf.deepfi.schedule.services.ScheduleRepo
 import com.spotify.docker.client.DockerClient.ListContainersParam
 import com.spotify.docker.client.messages.{ContainerConfig, ContainerCreation, HostConfig, PortBinding}
 import com.spotify.docker.client.{DefaultDockerClient, DockerClient}
@@ -320,5 +321,69 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
         check(Conference.Dao.update(Conference(1L, "big-east", "Big East", "The Big East Conference", None)))
       }
     }
+  }
+
+  describe("Schedule repo ops") {
+    val repo = new ScheduleRepo[IO](transactor)
+
+    it("should list all aliases") {
+      (for {
+        aliasList <- repo.listAliases()
+      } yield {
+        assert(aliasList.size >= 0)
+      }).unsafeRunSync()
+    }
+
+    it("should insert an alias") {
+      (for {
+        aliasList0 <- repo.listAliases()
+        a<-repo.insertAlias(Alias(0L,32L,"st. johns"))
+        aliasList1 <- repo.listAliases()
+      } yield {
+        assert(a.id>0L)
+        assert(aliasList1.size >= aliasList0.size)
+        assert(aliasList1.contains(a))
+      }).unsafeRunSync()
+    }
+
+    it("should find aliases") {
+      (for {
+        a<-repo.insertAlias(Alias(0L,32L,"st. francis"))
+        a1<-repo.findAlias(a.id)
+        ax<- repo.findAlias(-999L)
+      } yield {
+        assert(a1 === Some(a))
+        assert(ax.isEmpty)
+      }).unsafeRunSync()
+    }
+
+    it("should update an alias") {
+      (for {
+        a<-repo.insertAlias(Alias(0L,32L,"usc"))
+        a1<-repo.findAlias(a.id)
+        a2<-repo.updateAlias(a.copy(alias="southern cal"))
+        a3<- repo.findAlias(a.id)
+      } yield {
+        assert(a1 === Some(a))
+        assert(!(a === a2))
+        assert(a3 === Some(a2))
+      }).unsafeRunSync()
+    }
+
+    it("should delete an alias") {
+      (for {
+        a<-repo.insertAlias(Alias(0L,32L,"villanova"))
+        list1<-repo.listAliases()
+        n<- repo.deleteAlias(a.id)
+        list2<-repo.listAliases()
+        m<- repo.deleteAlias(-999L)
+      } yield {
+        assert(list1.contains(a))
+        assert(n === 1)
+        assert(!list2.contains(a))
+        assert(m === 0)
+      }).unsafeRunSync()
+    }
+
   }
 }

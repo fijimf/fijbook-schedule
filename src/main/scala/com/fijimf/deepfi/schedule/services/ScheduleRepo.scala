@@ -27,7 +27,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listAliases(): F[List[Alias]] = Alias.Dao.list().to[List].transact(xa)
 
-  def findAlias(id: Long): F[Alias] = Alias.Dao.find(id).unique.transact(xa)
+  def findAlias(id: Long): F[Option[Alias]] = Alias.Dao.find(id).option.transact(xa)
 
   def insertConference(c: Conference): F[Conference] = {
     import Conference.Dao._

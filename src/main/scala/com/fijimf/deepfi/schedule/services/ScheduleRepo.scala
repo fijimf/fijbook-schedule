@@ -49,7 +49,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listConferences(): F[List[Conference]] = Conference.Dao.list().to[List].transact(xa)
 
-  def findConference(id: Long): F[Conference] = Conference.Dao.find(id).unique.transact(xa)
+  def findConference(id: Long): F[Option[Conference]] = Conference.Dao.find(id).option.transact(xa)
 
   def listConferenceTeams(s: Season): F[List[Team]] = ???
 
@@ -73,8 +73,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listConferenceMappings(): F[List[ConferenceMapping]] = ConferenceMapping.Dao.list().to[List].transact(xa)
 
-  def findConferenceMapping(id: Long): F[ConferenceMapping] = ConferenceMapping.Dao.find(id).unique.transact(xa)
-
+  def findConferenceMapping(id: Long): F[Option[ConferenceMapping]] = ConferenceMapping.Dao.find(id).option.transact(xa)
 
   def insertGame(g: Game): F[Game] = {
     import Game.Dao._

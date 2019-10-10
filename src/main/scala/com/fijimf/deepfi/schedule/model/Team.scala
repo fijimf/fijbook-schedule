@@ -14,43 +14,27 @@ object Team {
     val tableName = "team"
 
     def insert(t: Team): doobie.Update0 =
-      sql"""
-    INSERT INTO team(key,name,nickname,logo_url,color1, color2)
-    VALUES (${t.key}, ${t.name}, ${t.nickname}, ${t.logoUrl}, ${t.color1}, ${t.color2})
-    RETURNING $colString
-    """.update
+      (fr""" INSERT INTO team(key,name,nickname,logo_url,color1, color2)
+             VALUES (${t.key}, ${t.name}, ${t.nickname}, ${t.logoUrl}, ${t.color1}, ${t.color2})
+             RETURNING """ ++ colFr).update
 
+    def update(t:Team): doobie.Update0 =
+      (fr"""UPDATE team SET key=${t.key},  name=${t.name},  nickname=${t.nickname},  logo_url=${t.logoUrl},  color1=${t.color1},  color2=${t.color2}
+            WHERE id=${t.id}
+            RETURNING """++ colFr).update
 
-    def find(id: Long): doobie.Query0[Team] = (baseQuery ++
-      fr"""
-       WHERE id = $id
-      """).query[Team]
+    def find(id: Long): doobie.Query0[Team] = (baseQuery ++ fr" WHERE id = $id").query[Team]
 
-    def findByKey(k: String): doobie.Query0[Team] = (baseQuery ++
-      fr"""
-       WHERE key = $k
-      """).query[Team]
+    def findByKey(k: String): doobie.Query0[Team] = (baseQuery ++ fr" WHERE key = $k").query[Team]
 
-    def findByAlias(k: String): doobie.Query0[Team] = (prefixedQuery("team") ++
-      fr"""
-       INNER JOIN alias ON team.id = alias.team_id
-       WHERE key = alias.alias
-      """).query[Team]
+    def findByAlias(k: String): doobie.Query0[Team] =
+      (prefixedQuery("team") ++ fr" INNER JOIN alias ON team.id = alias.team_id WHERE key = alias.alias").query[Team]
 
     def list(): doobie.Query0[Team] = baseQuery.query[Team]
 
+    def delete(id: Long): doobie.Update0 =sql" DELETE FROM team where id=$id".update
 
 
-    def delete(id: Long): doobie.Update0 =
-      sql"""
-        DELETE FROM team where id=${id}
-      """.update
-
-    def update(t:Team): doobie.Update0 =
-      sql"""
-            UPDATE team SET key=${t.key},  name=${t.name},  nickname=${t.nickname},  logo_url=${t.logoUrl},  color1=${t.color1},  color2=${t.color2}
-            WHERE id=${t.id}
-        """.update
   }
 
 }

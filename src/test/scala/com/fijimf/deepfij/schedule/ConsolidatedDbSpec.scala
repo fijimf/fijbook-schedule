@@ -169,6 +169,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       it("update should typecheck") {
         check(Game.Dao.update(Game(83L, 1L, LocalDate.now(), LocalDateTime.now(), 5L, 7L, Some("MCI Center"), None, "20190911")))
       }
+
+      it("truncate should typecheck") {
+        check(Game.Dao.truncate())
+      }
     }
     describe("Result.Dao") {
 
@@ -195,13 +199,16 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       it("update should typecheck") {
         check(Result.Dao.insert(Result(3L, 1L, 92, 67, 2)))
       }
+
+      it("truncate should typecheck") {
+        check(Result.Dao.truncate())
+      }
     }
     describe("Season.Dao") {
 
       it("insert should typecheck") {
         check(Season.Dao.insert(Season(0L, 1999)))
       }
-
 
       it("list should typecheck") {
         check(Season.Dao.list())
@@ -221,6 +228,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
 
       it("update should typecheck") {
         check(Season.Dao.update(Season(3L, 1999)))
+      }
+
+      it("truncate should typecheck") {
+        check(Season.Dao.truncate())
       }
     }
     describe("Team.Dao") {
@@ -252,6 +263,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       it("update should typecheck") {
         check(Team.Dao.update(Team(0L, "georgetown", "Georgetown", "Hoyas", "http://xxx.xxx.com/xxx/xxxxx/xxxxxxxx", "#AAFFDD", "blue")))
       }
+
+      it("truncate should typecheck") {
+        check(Team.Dao.truncate())
+      }
     }
     describe("Alias.Dao") {
 
@@ -273,6 +288,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
 
       it("update should typecheck") {
         check(Alias.Dao.update(Alias(3L, 4L, "ssssss")))
+      }
+
+      it("truncate should typecheck") {
+        check(Alias.Dao.truncate())
       }
 
     }
@@ -297,6 +316,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       it("update should typecheck") {
         check(ConferenceMapping.Dao.update(ConferenceMapping(1L, 2L, 3L, 4L)))
       }
+
+      it("truncate should typecheck") {
+        check(ConferenceMapping.Dao.truncate())
+      }
     }
 
     describe("Conference.Dao") {
@@ -319,6 +342,10 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
 
       it("update should typecheck") {
         check(Conference.Dao.update(Conference(1L, "big-east", "Big East", "The Big East Conference", None)))
+      }
+
+      it("truncate should typecheck") {
+        check(Conference.Dao.truncate())
       }
     }
   }
@@ -386,9 +413,122 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       }
     }
     describe("Conference ops"){
+      it("should list conferences"){
+        (for {
+          conferenceList <- repo.listConferences()
+        } yield {
+          assert(conferenceList.size >= 0)
+        }).unsafeRunSync()
+      }
+
+      it ("should insert a conference"){
+        (for {
+          conferenceList <- repo.listConferences()
+          c<- repo.insertConference(Conference(0L, "big-east","Big East", "The Big East Conference", Some("http://Blah.blah.com/logo.png")))
+          conferenceList1<-repo.listConferences()
+        } yield {
+          assert(c.id >0L)
+          assert(conferenceList.size+1===conferenceList1.size)
+          assert(conferenceList1.contains(c))
+        }).unsafeRunSync()
+      }
+
+      it ("should find a conferences"){
+        (for {
+          c<- repo.insertConference(Conference(0L, "pac12","Pac-12", "The Pac-12 Conference", Some("http://Blah.blah.com/logo.png")))
+          c1<-repo.findConference(c.id)
+          cx<-repo.findConference(-999L)
+        } yield {
+          assert(c1===Some(c))
+          assert(cx.isEmpty)
+        }).unsafeRunSync()
+      }
+
+      it("should update a conferences"){
+        (for {
+          c<- repo.insertConference(Conference(0L, "big12","Big-12", "The Big-12 Conference", Some("http://Blah.blah.com/logo.png")))
+          c1<-repo.findConference(c.id)
+          c2<-repo.updateConference(c.copy(name="Big Twelve"))
+          c3<-repo.findConference(c.id)
+        } yield {
+          assert(c1===Some(c))
+          assert(c3===Some(c2))
+          assert(!(c===c2))
+        }).unsafeRunSync()
+
+      }
+      it("should delete a conferences"){
+        (for {
+          c<- repo.insertConference(Conference(0L, "big-west","Big West", "The Big West Conference", Some("http://Blah.blah.com/logo.png")))
+          c1<-repo.findConference(c.id)
+          n<-repo.deleteConference(c.id)
+          c3<-repo.findConference(c.id)
+        } yield {
+          assert(c1===Some(c))
+          assert(n===1)
+          assert(c3===None)
+        }).unsafeRunSync()
+
+      }
 
     }
     describe("ConferenceMapping ops"){
+      it("should list conferenceMappings"){
+        (for {
+          cmList <- repo.listConferenceMappings()
+        } yield {
+          assert(cmList.size >= 0)
+        }).unsafeRunSync()
+      }
+
+      it ("should insert a conferenceMapping"){
+        (for {
+          cmList <- repo.listConferenceMappings()
+          cm<- repo.insertConferenceMapping(ConferenceMapping(0L, 1L,2L,3L))
+          cmList1<-repo.listConferenceMappings()
+        } yield {
+          assert(cm.id >0L)
+          assert(cmList.size+1===cmList1.size)
+          assert(cmList1.contains(cm))
+        }).unsafeRunSync()
+      }
+
+      it ("should find a conferenceMapping"){
+        (for {
+          cm<- repo.insertConferenceMapping(ConferenceMapping(0L, 1L,3L,3L))
+          cm1<-repo.findConferenceMapping(cm.id)
+          cmx<-repo.findConferenceMapping(-999L)
+        } yield {
+          assert(cm1===Some(cm))
+          assert(cmx.isEmpty)
+        }).unsafeRunSync()
+      }
+
+      it("should update a conferenceMapping"){
+        (for {
+          cm<- repo.insertConferenceMapping(ConferenceMapping(0L, 1L,4L,3L))
+          cm1<-repo.findConferenceMapping(cm.id)
+          cm2<-repo.updateConferenceMapping(cm.copy(conferenceId=5L))
+          cm3<-repo.findConferenceMapping(cm.id)
+        } yield {
+          assert(cm1===Some(cm))
+          assert(cm3===Some(cm2))
+          assert(!(cm===cm2))
+        }).unsafeRunSync()
+      }
+
+      it("should delete a conferenceMapping"){
+        (for {
+          cm<- repo.insertConferenceMapping(ConferenceMapping(0L, 1L,5L,3L))
+          cm1<-repo.findConferenceMapping(cm.id)
+          n<-repo.deleteConferenceMapping(cm.id)
+          cm3<-repo.findConferenceMapping(cm.id)
+        } yield {
+          assert(cm1===Some(cm))
+          assert(n===1)
+          assert(cm3===None)
+        }).unsafeRunSync()
+      }
 
     }
     describe("Game ops"){
@@ -428,6 +568,33 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
           assert(s1===Some(s))
           assert(sx.isEmpty)
         }).unsafeRunSync()
+      }
+
+      it("should update a season"){
+        (for {
+          s<- repo.insertSeason(Season(0L, 2012))
+          s1<-repo.findSeason(s.id)
+          s2<-repo.updateSeason(s.copy(year=2001))
+          s3<-repo.findSeason(s.id)
+        } yield {
+          assert(s1===Some(s))
+          assert(s3===Some(s2))
+          assert(!(s===s2))
+        }).unsafeRunSync()
+
+      }
+      it("should delete a season"){
+        (for {
+          s<- repo.insertSeason(Season(0L, 2011))
+          s1<-repo.findSeason(s.id)
+          n<-repo.deleteSeason(s.id)
+          s3<-repo.findSeason(s.id)
+        } yield {
+          assert(s1===Some(s))
+          assert(n===1)
+          assert(s3===None)
+        }).unsafeRunSync()
+
       }
 
 

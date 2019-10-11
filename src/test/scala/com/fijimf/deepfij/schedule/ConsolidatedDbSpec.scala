@@ -1,16 +1,18 @@
 package com.fijimf.deepfij.schedule
 
 import java.sql.DriverManager
+import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalDateTime}
 import java.util
 
 import cats.effect.{ContextShift, IO, Resource}
 import com.fijimf.deepfi.schedule.model._
-import com.fijimf.deepfi.schedule.services.ScheduleRepo
+import com.fijimf.deepfi.schedule.services.{ScheduleRepo, Updater}
 import com.spotify.docker.client.DockerClient.ListContainersParam
 import com.spotify.docker.client.messages.{ContainerConfig, ContainerCreation, HostConfig, PortBinding}
 import com.spotify.docker.client.{DefaultDockerClient, DockerClient}
 import doobie.hikari.HikariTransactor
+import doobie.implicits._
 import doobie.util.{Colors, ExecutionContexts}
 import org.flywaydb.core.Flyway
 import org.scalatest.{BeforeAndAfterAll, FunSpec, Matchers}
@@ -606,9 +608,88 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
 
   describe("Snapshotter"){
 
+
   }
 
   describe("Updater"){
+    val repo: ScheduleRepo[IO] = new ScheduleRepo[IO](transactor)
+    val updater: Updater[IO] = Updater(transactor)
+
+    def updaterSetup(): Unit = {
+
+      (for {
+        _ <- Alias.Dao.truncate().run.transact(transactor)
+        _ <- Team.Dao.truncate().run.transact(transactor)
+        _ <- Game.Dao.truncate().run.transact(transactor)
+        _ <- Result.Dao.truncate().run.transact(transactor)
+        _ <- Season.Dao.truncate().run.transact(transactor)
+        s <- repo.insertSeason(Season(0L, 2020))
+        georgetown <- repo.insertTeam(Team(0L, "georgetown", "Georgetown", "Hoyas", "", "", ""))
+        harvard <- repo.insertTeam(Team(0L, "harvard", "Harvard", "Crimson", "", "", ""))
+        duke <- repo.insertTeam(Team(0L, "duke", "Duke", "Blue Devils", "", "", ""))
+        carolina <- repo.insertTeam(Team(0L, "north-carolina", "North Carolina", "Tar Heels", "", "", ""))
+        villanova <- repo.insertTeam(Team(0L, "villanova", "Villanove", "Wildcats", "", "", ""))
+        _ <- repo.insertAlias(Alias(0L, carolina.id, "unc"))
+      } yield {
+
+      }).unsafeRunSync
+    }
+
+
+    it("should initially have no games") {
+      updaterSetup()
+      (for {
+        games <- repo.listGame()
+        teams <- repo.listTeam()
+      } yield {
+        assert(games.isEmpty)
+        assert(teams.size === 5)
+      }).unsafeRunSync()
+    }
+
+    it("should identify correct gamekeys") {
+
+      val time: LocalDateTime = LocalDateTime.of(2019, 11, 15, 19, 30)
+      val loadKey: String = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+      val updates = List(
+        UpdateCandidate(time, "georgetown", "duke", Some("Verizon Center"), Some(false), None, None, None)
+      )
+      updaterSetup()
+      (for {
+        games <- repo.listGame()
+        teams <- repo.listTeam()
+        aliases <- repo.listAliases()
+        keyMap <- updater.findKeys(updates, loadKey)
+      } yield {
+        assert(games.isEmpty)
+        assert(teams.size === 5)
+        assert(aliases.size === 1)
+        assert(keyMap.size ===1 )
+      }).unsafeRunSync()
+    }
+
+    it("insert 1 new game") {
+
+      val time: LocalDateTime = LocalDateTime.of(2019, 11, 15, 19, 30)
+      val loadKey: String = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+      val updates = List(
+        UpdateCandidate(time, "georgetown", "duke", Some("Verizon Center"), Some(false), None, None, None)
+      )
+      updaterSetup()
+      (for {
+        games <- repo.listGame()
+        teams <- repo.listTeam()
+        aliases <- repo.listAliases()
+        changes <- updater.updateGamesAndResults(updates, loadKey)
+        gamesPost <- repo.listGame()
+      } yield {
+        assert(games.isEmpty)
+        assert(teams.size === 5)
+        assert(aliases.size === 1)
+        assert(changes.size ===1 )
+        assert(gamesPost.size ===1 )
+      }).unsafeRunSync()
+    }
 
   }
 }

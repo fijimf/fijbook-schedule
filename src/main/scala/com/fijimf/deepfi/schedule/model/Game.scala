@@ -28,18 +28,19 @@ object Game {
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Timestamp].imap(ts => ts.toLocalDateTime)(ldt => Timestamp.valueOf(ldt))
 
     val cols: Array[String] = Array("id", "season_id", "date", "time", "home_team_id", "away_team_id", "location", "is_neutral", "load_key")
-   val tableName= "game"
+    val tableName = "game"
+
     def insert(g: Game): Update0 =
-      sql"""
-    INSERT INTO game(season_id, date,time,home_team_id,away_team_id,location, is_neutral, load_key )
-    VALUES (${g.seasonId},${g.date},${g.time},${g.homeTeamId},${g.awayTeamId},${g.location},${g.isNeutral},${g.loadKey})
-    RETURNING $colString """.update
+      (fr"""INSERT INTO game(season_id, date,time,home_team_id,away_team_id,location, is_neutral, load_key )
+            VALUES (${g.seasonId},${g.date},${g.time},${g.homeTeamId},${g.awayTeamId},${g.location},${g.isNeutral},${g.loadKey})
+            RETURNING """ ++ colFr).update
 
+    def update(g: Game): Update0 =
+      (fr"""UPDATE game SET season_id = ${g.seasonId}, date = ${g.date}, time = ${g.time}, home_team_id = ${g.homeTeamId}, away_team_id = ${g.awayTeamId}, location = ${g.location}, is_neutral = ${g.isNeutral}, load_key = ${g.loadKey}
+            WHERE id=${g.id}
+            RETURNING """ ++ colFr).update
 
-    def find(id: Long): doobie.Query0[Game] = (baseQuery ++
-      fr"""
-       WHERE id = $id
-      """).query[Game]
+    def find(id: Long): doobie.Query0[Game] = (baseQuery ++ fr" WHERE id = $id").query[Game]
 
     def findByLoadKey(loadKey: String): doobie.Query0[(Game, Option[Result])] =
       (fr"""SELECT """ ++
@@ -51,23 +52,9 @@ object Game {
 
     def list(): doobie.Query0[Game] = baseQuery.query[Game]
 
+    def delete(id: Long): doobie.Update0 = sql"DELETE FROM game where id=$id".update
 
-    def delete(id: Long): doobie.Update0 =
-      sql"""
-        DELETE FROM game where id=$id
-      """.update
-
-    def deleteByLoadKey(loadKey: String): doobie.Update0 =
-      sql"""
-        DELETE FROM game where load_key=$loadKey
-      """.update
-
-
-    def update(g: Game): Update0 =
-      sql"""
-      UPDATE game SET season_id = ${g.seasonId}, date = ${g.date}, time = ${g.time}, home_team_id = ${g.homeTeamId}, away_team_id = ${g.awayTeamId}, location = ${g.location}, is_neutral = ${g.isNeutral}, load_key = ${g.loadKey}
-      WHERE id=${g.id}
-      """.update
+    def deleteByLoadKey(loadKey: String): doobie.Update0 = sql"DELETE FROM game where load_key=$loadKey".update
   }
 
 }

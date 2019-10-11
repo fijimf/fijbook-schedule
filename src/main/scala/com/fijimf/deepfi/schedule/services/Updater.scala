@@ -10,11 +10,10 @@ import com.fijimf.deepfi.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
-class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
-
-  case class MatchKey(day: Long, seasonId: Long, homeTeamId: Long, awayTeamId: Long)
+final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
 
   implicit val eqGame: Eq[Game] = Eq.fromUniversalEquals
+  implicit val eqResult: Eq[Result] = Eq.fromUniversalEquals
   /** Update games and results is a little subtle
    * 1) A 'loadKey' is the key used by the scraping model to break up the updates.  Typically it is by date, but scraping date is not the same as game date -- Hawaii night games.
    * 2) For a given loadKey we want to
@@ -25,68 +24,119 @@ class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
    * 3) We can't simply do delete/insert because we need game_id to be stable.
    *
    */
-  def updateGamesAndResults(pgs: List[UpdateCandidate], loadKey: String): F[(List[Game], List[Game], List[Game])] = {
+  def updateGamesAndResults(updates: List[UpdateCandidate], loadKey: String): F[List[(Game, Option[Result])]] = {
     for {
-      pgList <- findKeys(pgs)
-      gMap <- loadGamesAndResults(loadKey)
-      deletes = findDeletes(pgList, gMap)
-      mods = findMods(pgList, gMap, loadKey)
-      _ <- deletes.traverse(d => Result.Dao.deleteByGameId(d.id).run).transact(xa)
-      _ <- deletes.traverse(d => Game.Dao.delete(d.id).run).transact(xa)
-      _ <- mods.traverse(g => if (g.id === 0L) Game.Dao.insert(g).run else Game.Dao.update(g).run).transact(xa)
-
+      updatesWithKeys <- findKeys(updates, loadKey)
+      gamesWithKeys <- loadGamesAndResults(loadKey)
+      mods <- doUpdates(updatesWithKeys, gamesWithKeys, loadKey)
     } yield {
-      (deletes, mods.filter(_.id === 0L), mods.filter(_.id =!= 0L))
+      mods
     }
   }
 
-  def findDeletes(pgList: List[(MatchKey, UpdateCandidate)], gMap: Map[MatchKey, (Game, Option[Result])]): List[Game] = {
-    val updateKeys: List[MatchKey] = pgList.map(_._1)
-    gMap
+  def findDeletes(updatesWithKeys: List[(GameKey, UpdateCandidate)], gamesWithKeys: Map[GameKey, (Game, Option[Result])]): List[Game] = {
+    val updateKeys: List[GameKey] = updatesWithKeys.map(_._1)
+    gamesWithKeys
       .filter { case (k, _) => updateKeys.contains(k) }
       .values
       .map(_._1)
       .toList
   }
 
-  def findMods(pgList: List[(MatchKey, UpdateCandidate)], gMap: Map[MatchKey, (Game, Option[Result])], loadKey: String): List[Game] = {
-    pgList.flatMap { case (k, v) =>
-      gMap.get(k) match {
-        case Some((g, optR)) =>
-          val update: Game = v.toGame(g.id, k.seasonId, k.homeTeamId, k.awayTeamId, loadKey)
-          val xxx=if (update === g)
-            List.empty[Game]
-          else
-            List(update)
-          xxx
-        case None =>
-          val insert: Game = v.toGame(0L, k.seasonId, k.homeTeamId, k.awayTeamId, loadKey)
-          List(insert)
+  def doUpdates(updatesWithKeys: Map[GameKey, (Game, Option[Result])], gamesWithKeys: Map[GameKey, (Game, Option[Result])], loadKey: String): F[List[(Game, Option[Result])]] = {
+    val keys: Set[GameKey] = updatesWithKeys.keySet ++ gamesWithKeys.keySet
+
+    keys.toList.map(k => {
+      (gamesWithKeys.get(k), updatesWithKeys.get(k)) match {
+        case (Some((g, Some(r))), Some((h, Some(s)))) =>
+          val h1: Game = h.copy(id = g.id)
+          val s1: Result = s.copy(id = r.id, gameId = r.gameId)
+          if (g === h1 && r === s1) {
+            F.pure(List.empty[(Game, Option[Result])])
+          } else {
+            update(h1, Some(s1))
+          }
+        case (Some((g, None)), Some((h, Some(s)))) =>
+          update(h.copy(id = g.id), Some(s))
+        case (Some((g, Some(r))), Some((h, None))) =>
+          update(h.copy(id = g.id), Some(r.copy(id = -r.id)))
+        case (Some((g, None)), Some((h, None))) =>
+          val h1: Game = h.copy(id = g.id)
+          if (h1 === g) {
+            F.pure(List.empty[(Game, Option[Result])])
+          } else {
+            update(h1, None)
+          }
+        case (Some((g, or)), None) => // No game or result in update pure delete
+          update(g.copy(id = -g.id), or.map(r => r.copy(id = -r.id)))
+
+        case (None, Some((g, or))) => // No existing game or result pure insert
+          update(g, or)
+
+        case (None, None) => //cant happen
+          F.pure(List.empty[(Game, Option[Result])])
+      }
+    }).sequence.map(_.flatten)
+  }
+
+  def update(g: Game, or: Option[Result]): F[List[(Game, Option[Result])]] = {
+    for {
+      game <- updateGame(g)
+      optionResult <- updateOptionResult(or.map(_.copy(gameId = game.id)))
+    } yield {
+      if (game.id < 0) {
+        List.empty[(Game, Option[Result])]
+      } else {
+        List((game, optionResult))
       }
     }
   }
 
-  def findKeys(pgs: List[UpdateCandidate]): F[List[(MatchKey, UpdateCandidate)]] = {
-    pgs.map(findKeysForGame).sequence.map(_.flatten)
+  def updateGame(g: Game): F[Game] = {
+    import Game.Dao._
+    if (g.id < 0) {
+      Game.Dao.delete(-g.id).run.transact(xa).map(_ => g)
+    } else if (g.id === 0) {
+      Game.Dao.insert(g).withUniqueGeneratedKeys[Game](Game.Dao.cols: _*).transact(xa)
+    } else {
+      Game.Dao.update(g).withUniqueGeneratedKeys[Game](Game.Dao.cols: _*).transact(xa)
+    }
   }
 
-  private def findKeysForGame(pg: UpdateCandidate): F[List[(MatchKey, UpdateCandidate)]] = {
+  def updateOptionResult(optionResult: Option[Result]): F[Option[Result]] = {
+    optionResult match {
+      case Some(result) =>
+        if (result.id < 0) {
+          Result.Dao.delete(-result.id).run.transact(xa).map(_ => None)
+        } else if (result.id === 0) {
+          Result.Dao.insert(result).withUniqueGeneratedKeys[Result](Result.Dao.cols: _*).transact(xa).map(Option(_))
+        } else {
+          Result.Dao.update(result).withUniqueGeneratedKeys[Result](Result.Dao.cols: _*).transact(xa).map(Option(_))
+        }
+      case None => F.pure(None)
+    }
+  }
 
+  def findKeys(pgs: List[UpdateCandidate], loadKey: String): F[Map[GameKey, (Game, Option[Result])]] = {
+    pgs.map(findKeysForGame(_, loadKey)).sequence.map(_.flatten.toMap)
+  }
+
+  private def findKeysForGame(pg: UpdateCandidate, loadKey: String): F[List[(GameKey, (Game, Option[Result]))]] = {
     (for {
       ht <- loadTeam(pg.homeKey)
       at <- loadTeam(pg.awayKey)
       s <- findSeason(pg.dateTime)
     } yield {
-      MatchKey(pg.date.toEpochDay, ht.id, at.id, s.id) -> pg
+      val key = GameKey(pg.date.toEpochDay, ht.id, at.id, s.id)
+      key -> (pg.toGame(0L, key, loadKey), pg.toOptionResult(0L, 0L))
     }).value.map(_.toList)
-
   }
 
-  def loadGamesAndResults(loadKey: String): F[Map[MatchKey, (Game, Option[Result])]] = {
+  def loadGamesAndResults(loadKey: String): F[Map[GameKey, (Game, Option[Result])]] = {
     for {
       gs <- Game.Dao.findByLoadKey(loadKey).to[List].transact(xa)
     } yield {
-      gs.map(t => MatchKey(t._1.date.toEpochDay, t._1.homeTeamId, t._1.awayTeamId, t._1.seasonId) -> t).toMap
+      gs.map(t => GameKey(t._1.date.toEpochDay, t._1.homeTeamId, t._1.awayTeamId, t._1.seasonId) -> t).toMap
     }
   }
 

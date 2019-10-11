@@ -8,10 +8,10 @@ import cats.implicits._
 import cats.kernel.Eq
 import com.fijimf.deepfi.schedule.model._
 import doobie.implicits._
+import doobie.util.log.LogHandler
 import doobie.util.transactor.Transactor
 
 final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
-
   implicit val eqGame: Eq[Game] = Eq.fromUniversalEquals
   implicit val eqResult: Eq[Result] = Eq.fromUniversalEquals
   /** Update games and results is a little subtle
@@ -121,7 +121,7 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     pgs.map(findKeysForGame(_, loadKey)).sequence.map(_.flatten.toMap)
   }
 
-  private def findKeysForGame(pg: UpdateCandidate, loadKey: String): F[List[(GameKey, (Game, Option[Result]))]] = {
+  def findKeysForGame(pg: UpdateCandidate, loadKey: String): F[List[(GameKey, (Game, Option[Result]))]] = {
     (for {
       ht <- loadTeam(pg.homeKey)
       at <- loadTeam(pg.awayKey)
@@ -140,12 +140,16 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     }
   }
 
-  def loadTeam(key: String): OptionT[F, Team] = OptionT(for {
-    fbk <- Team.Dao.findByKey(key).option.transact(xa)
-    fba <- Team.Dao.findByAlias(key).option.transact(xa)
-  } yield {
-    fbk.orElse(fba)
-  })
+  def loadTeam(key: String): OptionT[F, Team] = {
+    val a: F[Option[Team]] = Team.Dao.findByKey(key).option.transact(xa)
+    val b: F[Option[Team]] = Team.Dao.findByAlias(key).option.transact(xa)
+
+    OptionT[F,Team](a).orElseF(b)
+
+
+
+
+  }
 
   def findSeason(date: LocalDateTime): OptionT[F, Season] = OptionT(for {
     s <- Season.Dao.findByDate(date).option.transact(xa)

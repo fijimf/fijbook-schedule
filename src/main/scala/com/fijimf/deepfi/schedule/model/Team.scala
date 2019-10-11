@@ -2,6 +2,7 @@ package com.fijimf.deepfi.schedule.model
 
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import doobie.util.log.LogHandler
 
 final case class Team(id: Long, key: String, name: String, nickname: String, logoUrl: String, color1: String, color2: String) {
 
@@ -27,8 +28,9 @@ object Team {
 
     def findByKey(k: String): doobie.Query0[Team] = (baseQuery ++ fr" WHERE key = $k").query[Team]
 
-    def findByAlias(k: String): doobie.Query0[Team] =
-      (prefixedQuery("team") ++ fr" INNER JOIN alias ON team.id = alias.team_id WHERE key = alias.alias").query[Team]
+    def findByAlias(k: String): doobie.Query0[Team] = {
+      (prefixedQuery("team") ++ fr" INNER JOIN alias ON team.id = alias.team_id WHERE $k = alias.alias").query[Team]
+    }
 
     def list(): doobie.Query0[Team] = baseQuery.query[Team]
 

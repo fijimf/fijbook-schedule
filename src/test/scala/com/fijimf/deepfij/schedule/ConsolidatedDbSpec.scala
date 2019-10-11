@@ -647,6 +647,43 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       }).unsafeRunSync()
     }
 
+    it("should lookup teams by key") {
+      updaterSetup()
+      import cats.implicits._
+      (for {
+        teams <- repo.listTeam()
+        list <- teams.map(t => updater.loadTeam(t.key).value.map(_.toList)).sequence
+      } yield {
+        assert(teams === list.flatten)
+      }).unsafeRunSync()
+    }
+
+    it("should lookup teams by alias") {
+      updaterSetup()
+      import cats.implicits._
+      (for {
+        aliases <- repo.listAliases()
+        list <- aliases.map(a => updater.loadTeam(a.alias).value.map(_.toList)).sequence
+      } yield {
+        val aliasTeamIds: List[Long] = aliases.map(_.teamId)
+        print(aliasTeamIds)
+        val teamIds: List[Long] = list.flatten.map(_.id)
+        print(teamIds)
+        assert(!(aliasTeamIds =!= teamIds))
+      }).unsafeRunSync()
+    }
+
+    it("should not find bogus teams") {
+      updaterSetup()
+      import cats.implicits._
+      val strings = List("junk", "don't find me")
+      (for {
+        list <- strings.map(s => updater.loadTeam(s).value.map(_.toList)).sequence
+      } yield {
+        assert(list.flatten.isEmpty)
+      }).unsafeRunSync()
+    }
+
     it("should identify correct gamekeys") {
 
       val time: LocalDateTime = LocalDateTime.of(2019, 11, 15, 19, 30)

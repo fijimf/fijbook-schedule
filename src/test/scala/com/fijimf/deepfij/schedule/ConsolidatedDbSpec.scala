@@ -666,9 +666,7 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
         list <- aliases.map(a => updater.loadTeam(a.alias).value.map(_.toList)).sequence
       } yield {
         val aliasTeamIds: List[Long] = aliases.map(_.teamId)
-        print(aliasTeamIds)
         val teamIds: List[Long] = list.flatten.map(_.id)
-        print(teamIds)
         assert(!(aliasTeamIds =!= teamIds))
       }).unsafeRunSync()
     }
@@ -702,6 +700,11 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
         assert(teams.size === 5)
         assert(aliases.size === 1)
         assert(keyMap.size ===1 )
+        keyMap.headOption.foreach{case (k,(g,or))=>{
+          assert(teams.find(_.id===k.homeTeamId).map(_.nickname)===Some("Hoyas"))
+          assert(teams.find(_.id===k.awayTeamId).map(_.nickname)===Some("Blue Devils"))
+          assert(k.seasonId>0L)
+        }}
       }).unsafeRunSync()
     }
 
@@ -725,6 +728,32 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
         assert(aliases.size === 1)
         assert(changes.size ===1 )
         assert(gamesPost.size ===1 )
+      }).unsafeRunSync()
+    }
+
+   it("insert 1 new game then delete it") {
+
+      val time: LocalDateTime = LocalDateTime.of(2019, 11, 15, 19, 30)
+      val loadKey: String = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+      val updates = List(
+        UpdateCandidate(time, "georgetown", "duke", Some("Verizon Center"), Some(false), None, None, None)
+      )
+      updaterSetup()
+      (for {
+        games <- repo.listGame()
+        teams <- repo.listTeam()
+        aliases <- repo.listAliases()
+        changes <- updater.updateGamesAndResults(updates, loadKey)
+        gamesPostAdd <- repo.listGame()
+        changes2 <- updater.updateGamesAndResults(List.empty[UpdateCandidate], loadKey)
+        gamesPostDelete <- repo.listGame()
+      } yield {
+        assert(games.isEmpty)
+        assert(teams.size === 5)
+        assert(aliases.size === 1)
+        assert(changes.size ===1 )
+        assert(gamesPostAdd.size ===1 )
+        assert(gamesPostDelete.isEmpty )
       }).unsafeRunSync()
     }
 

@@ -141,14 +141,8 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
   }
 
   def loadTeam(key: String): OptionT[F, Team] = {
-    val a: F[Option[Team]] = Team.Dao.findByKey(key).option.transact(xa)
-    val b: F[Option[Team]] = Team.Dao.findByAlias(key).option.transact(xa)
-
-    OptionT[F,Team](a).orElseF(b)
-
-
-
-
+    OptionT[F,Team](Team.Dao.findByKey(key).option.transact(xa))
+      .orElseF(Team.Dao.findByAlias(key).option.transact(xa))
   }
 
   def findSeason(date: LocalDateTime): OptionT[F, Season] = OptionT(for {

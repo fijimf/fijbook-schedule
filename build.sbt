@@ -34,14 +34,16 @@ lazy val root = (project in file("."))
       "com.amazonaws"   % "aws-java-sdk-s3"      % "1.11.651"
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
-    addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0")
+    addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0"),
+    fork in ThisBuild in Test:= false,
+    parallelExecution in ThisBuild in Test := false
   )
 
 enablePlugins(JavaAppPackaging)
 
 maintainer in Docker := "Jim Frohnhofer <fijimf@gmail.com>"
-packageSummary in Docker := "REST microservice to scrape RSS"
-packageDescription := "REST microservice to scrape RSS"
+packageSummary in Docker := "REST microservice to handle schedule operations"
+packageDescription := "REST microservice to handle schedule operations"
 
 wartremoverWarnings ++= Warts.allBut(Warts.unsafe:_*)
 //wartremoverErrors ++= Warts.unsafe

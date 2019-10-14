@@ -757,6 +757,37 @@ class ConsolidatedDbSpec extends FunSpec with BeforeAndAfterAll with Matchers wi
       }).unsafeRunSync()
     }
 
+   it("insert 1 new game then update it it") {
+
+      val time: LocalDateTime = LocalDateTime.of(2019, 11, 15, 19, 30)
+      val loadKey: String = time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+      val updates = List(
+        UpdateCandidate(time, "georgetown", "duke", Some("MCI Center"), Some(false), None, None, None)
+      )
+      val updates1 = List(
+        UpdateCandidate(time, "georgetown", "duke", Some("Verizon Center"), Some(false), None, None, None)
+      )
+      updaterSetup()
+      (for {
+        games <- repo.listGame()
+        teams <- repo.listTeam()
+        aliases <- repo.listAliases()
+        changes <- updater.updateGamesAndResults(updates, loadKey)
+        gamesPostAdd <- repo.listGame()
+        changes2 <- updater.updateGamesAndResults(updates1, loadKey)
+        gamesPostUpdate <- repo.listGame()
+      } yield {
+        assert(games.isEmpty)
+        assert(teams.size === 5)
+        assert(aliases.size === 1)
+        assert(changes.size ===1 )
+        assert(gamesPostAdd.size ===1 )
+        assert(gamesPostUpdate.size ===1  )
+        assert(gamesPostAdd.headOption.map(_.id)===gamesPostUpdate.headOption.map(_.id))
+        assert(!(gamesPostAdd.headOption.map(_.location)===gamesPostUpdate.headOption.map(_.location)))
+      }).unsafeRunSync()
+    }
+
 
     it("insert 1 new game, then add a result") {
 

@@ -51,8 +51,6 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def findConference(id: Long): F[Option[Conference]] = Conference.Dao.find(id).option.transact(xa)
 
-  def listConferenceTeams(s: Season): F[List[Team]] = ???
-
   def insertConferenceMapping(cm: ConferenceMapping): F[ConferenceMapping] = {
     import ConferenceMapping.Dao._
     insert(cm)
@@ -95,7 +93,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listGame(): F[List[Game]] = Game.Dao.list().to[List].transact(xa)
 
-  def findGame(id: Long): F[Game] = Game.Dao.find(id).unique.transact(xa)
+  def findGame(id: Long): F[Option[Game]] = Game.Dao.find(id).option.transact(xa)
 
   def insertResult(r: Result): F[Result] = {
     import Result.Dao._
@@ -117,7 +115,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listResult(): F[List[Result]] = Result.Dao.list().to[List].transact(xa)
 
-  def findResult(id: Long): F[Result] = Result.Dao.find(id).unique.transact(xa)
+  def findResult(id: Long): F[Option[Result]] = Result.Dao.find(id).option.transact(xa)
 
   def insertSeason(s: Season): F[Season] = {
     import Season.Dao._
@@ -161,7 +159,7 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
 
   def listTeam(): F[List[Team]] = Team.Dao.list().to[List].transact(xa)
 
-  def findTeam(id: Long): F[Team] = Team.Dao.find(id).unique.transact(xa)
+  def findTeam(id: Long): F[Option[Team]] = Team.Dao.find(id).option.transact(xa)
 
 
 }

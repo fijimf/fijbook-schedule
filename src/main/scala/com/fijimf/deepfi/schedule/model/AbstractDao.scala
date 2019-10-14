@@ -15,5 +15,5 @@ trait AbstractDao {
   def prefixedCols(p:String): Array[String] = cols.map(s=>p+"."+s)
   def prefixedQuery(p:String): Fragment = fr"""SELECT """ ++ Fragment.const(prefixedCols(p).mkString(",")) ++ fr""" FROM """++ Fragment.const(tableName+" ")
 
-  def truncate(): Update0 = (fr"TRUNCATE "  ++ Fragment.const(tableName)).update
+  def truncate(): Update0 = (fr"TRUNCATE "  ++ Fragment.const(tableName)++fr" CASCADE").update
 }

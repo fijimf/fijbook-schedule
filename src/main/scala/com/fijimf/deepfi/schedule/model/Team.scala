@@ -1,11 +1,9 @@
 package com.fijimf.deepfi.schedule.model
 
 import doobie.implicits._
-import doobie.util.fragment.Fragment
-import doobie.util.log.LogHandler
 
 final case class Team(id: Long, key: String, name: String, nickname: String, logoUrl: String, color1: String, color2: String) {
-
+  def toSnapshotRecord(): TeamRecord = TeamRecord(key, name, nickname, logoUrl, color1, color2)
 }
 
 object Team {

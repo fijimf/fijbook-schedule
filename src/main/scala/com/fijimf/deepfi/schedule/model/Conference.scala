@@ -4,7 +4,7 @@ import doobie.implicits._
 import doobie.util.update.Update0
 
 final case class Conference(id: Long, key: String, name: String, longName: String, logoUrl: Option[String]) {
-
+def toSnapshotRecord(): ConferenceRecord = ConferenceRecord(key, name,longName,logoUrl)
 }
 
 object Conference {

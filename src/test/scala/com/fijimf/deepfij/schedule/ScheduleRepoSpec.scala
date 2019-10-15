@@ -1,5 +1,6 @@
 package com.fijimf.deepfij.schedule
 
+import java.sql.SQLException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -421,6 +422,67 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
           assert(n === 1)
           assert(result3 === None)
         }).unsafeRunSync()
+      }
+
+      it("insert should fail on duplicate game_id") {
+        val thr: SQLException = intercept[SQLException]((for {
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Game.Dao.truncate().run.transact(transactor)
+          t1<-repo.insertTeam(georgetown)
+          t2<-repo.insertTeam(villanova)
+          s<-repo.insertSeason(season)
+          g <- repo.insertGame(Game(0L,s.id,time.toLocalDate, time,t1.id,t2.id,None, Some(false), time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+          _ <- repo.insertResult(Result(0L, g.id, 67,89,2))
+          _ <- repo.insertResult(Result(0L, g.id, 44,93,2))
+        } yield {
+        }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("update should fail on duplicate game_id") {
+        val thr: SQLException = intercept[SQLException]((for {
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Game.Dao.truncate().run.transact(transactor)
+          t1<-repo.insertTeam(georgetown)
+          t2<-repo.insertTeam(villanova)
+          s<-repo.insertSeason(season)
+          g <- repo.insertGame(Game(0L,s.id,time.toLocalDate, time,t1.id,t2.id,None, Some(false), time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+          h <- repo.insertGame(Game(0L,s.id,time.toLocalDate, time,t2.id,t1.id,None, Some(false), time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+          r <- repo.insertResult(Result(0L, g.id, 67,89,2))
+          s <- repo.insertResult(Result(0L, h.id, 44,93,2))
+          _ <- repo.updateResult(s.copy(gameId = g.id))
+        } yield {
+        }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("insert should fail on missing game_id") {
+        val thr: SQLException = intercept[SQLException]((for {
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Game.Dao.truncate().run.transact(transactor)
+          _ <- repo.insertResult(Result(0L, 12L, 67,89,2))
+        } yield {
+        }).unsafeRunSync())
+        assert(thr.getMessage.contains("violates foreign key constraint"))
+      }
+
+      it("update should fail on missing game_id") {
+        val thr: SQLException = intercept[SQLException]((for {
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Game.Dao.truncate().run.transact(transactor)
+          t1<-repo.insertTeam(georgetown)
+          t2<-repo.insertTeam(villanova)
+          s<-repo.insertSeason(season)
+          g <- repo.insertGame(Game(0L,s.id,time.toLocalDate, time,t1.id,t2.id,None, Some(false), time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+          r <- repo.insertResult(Result(0L, g.id, 67,89,2))
+          _ <- repo.updateResult(r.copy(gameId = -r.gameId))
+        } yield {
+        }).unsafeRunSync())
+        assert(thr.getMessage.contains("violates foreign key constraint"))
       }
 
     }

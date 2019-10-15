@@ -1,5 +1,7 @@
 package com.fijimf.deepfi.schedule
 
+import cats.effect._
+import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import com.typesafe.config.{Config, ConfigFactory}
 import doobie.hikari.HikariTransactor
@@ -7,8 +9,7 @@ import doobie.util.ExecutionContexts
 import org.flywaydb.core.Flyway
 
 object Main extends IOApp {
-  val zzz: Config = ConfigFactory.load("application.conf")
-  println(zzz)
+
   val conf: Resource[IO, Config] = {
     val alloc: IO[Config] = IO.delay(ConfigFactory.load("application.conf"))
     val free: Config => IO[Unit] = (c: Config) => IO {}
@@ -35,12 +36,17 @@ object Main extends IOApp {
     transactor.use { xa =>
       for {
         _ <- initDB(xa)
+        exitCode <- ScheduleServer
+          .stream[IO](xa)
+          .compile[IO, IO, ExitCode]
+          .drain
+          .as(ExitCode.Success)
       } yield {
-        ExitCode.Success
+        exitCode
+
       }
     }
   }
-
 
   def initDB(xa: HikariTransactor[IO]): IO[Int] = {
     xa.configure { dataSource =>

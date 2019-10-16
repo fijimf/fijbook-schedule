@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 
 import doobie.implicits._
 import doobie.util.update.Update0
+import io.circe.generic.JsonCodec
 
 final case class Season(id: Long, year: Int) {
 

@@ -1,6 +1,7 @@
 package com.fijimf.deepfi.schedule.model
 
 import doobie.implicits._
+import io.circe.generic.JsonCodec
 
 final case class Team(id: Long, key: String, name: String, nickname: String, logoUrl: String, color1: String, color2: String) {
   def toSnapshotRecord(): TeamRecord = TeamRecord(key, name, nickname, logoUrl, color1, color2)

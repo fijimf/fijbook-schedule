@@ -7,6 +7,7 @@ import doobie.implicits._
 import doobie.util.Meta
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
+import io.circe.generic.JsonCodec
 
 final case class Game(id: Long, seasonId: Long, date: LocalDate, time: LocalDateTime, homeTeamId: Long, awayTeamId: Long, location: Option[String], isNeutral: Option[Boolean], loadKey: String) {
 

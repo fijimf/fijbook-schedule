@@ -3,6 +3,7 @@ package com.fijimf.deepfi.schedule.model
 import doobie.implicits._
 import doobie.util.fragment.Fragment
 import doobie.util.update.Update0
+import io.circe.generic.JsonCodec
 
 final case class Alias(id: Long, teamId: Long, alias: String) {
 

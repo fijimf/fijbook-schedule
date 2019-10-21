@@ -5,29 +5,29 @@ import com.fijimf.deepfi.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 
-class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) {
+class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] {
 
-  def insertAlias(a: Alias): F[Alias] = {
+  override def insertAlias(a: Alias): F[Alias] = {
     import Alias.Dao._
     insert(a)
       .withUniqueGeneratedKeys[Alias](cols: _*)
       .transact(xa)
   }
 
-  def updateAlias(c: Alias): F[Alias] = {
+  override def updateAlias(a: Alias): F[Alias] = {
     import Alias.Dao._
-    update(c)
+    update(a)
       .withUniqueGeneratedKeys[Alias](cols: _*)
       .transact(xa)
   }
 
-  def deleteAlias(id: Long): F[Int] = {
+  override def deleteAlias(id: Long): F[Int] = {
     Alias.Dao.delete(id).run.transact(xa)
   }
 
-  def listAliases(): F[List[Alias]] = Alias.Dao.list().to[List].transact(xa)
+  override def listAliases(): F[List[Alias]] = Alias.Dao.list().to[List].transact(xa)
 
-  def findAlias(id: Long): F[Option[Alias]] = Alias.Dao.find(id).option.transact(xa)
+  override def findAlias(id: Long): F[Option[Alias]] = Alias.Dao.find(id).option.transact(xa)
 
   def insertConference(c: Conference): F[Conference] = {
     import Conference.Dao._

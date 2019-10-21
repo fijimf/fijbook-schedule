@@ -17,10 +17,11 @@ object ScheduleServer {
   def stream[F[_] : ConcurrentEffect](transactor: Transactor[F])(implicit T: Timer[F], C: ContextShift[F]): Stream[F, ExitCode] = {
     val repo = new ScheduleRepo[F](transactor)
     val healthcheckService: HttpRoutes[F] = ScheduleRoutes.healthcheckRoutes(repo)
+    val aliasRepoService: HttpRoutes[F] = ScheduleRoutes.aliasRepoRoutes(repo)
     val repoService: HttpRoutes[F] = ScheduleRoutes.scheduleRepoRoutes(repo)
     val snapshotterService: HttpRoutes[F] = ScheduleRoutes.snapshotterRoutes(new Snapshotter[F](transactor))
     val updaterService: HttpRoutes[F] = ScheduleRoutes.updaterRoutes(new Updater[F](transactor))
-    val httpApp: HttpApp[F] = (healthcheckService <+> repoService <+> snapshotterService <+> updaterService).orNotFound
+    val httpApp: HttpApp[F] = (healthcheckService <+> aliasRepoService <+> repoService <+> snapshotterService <+> updaterService).orNotFound
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)
     for {
       exitCode <- BlazeServerBuilder[F]

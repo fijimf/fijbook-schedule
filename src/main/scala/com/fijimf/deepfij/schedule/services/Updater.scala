@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule.services
+package com.fijimf.deepfij.schedule.services
 
 import java.time.LocalDateTime
 
@@ -6,7 +6,7 @@ import cats.data.OptionT
 import cats.effect.Sync
 import cats.implicits._
 import cats.kernel.Eq
-import com.fijimf.deepfi.schedule.model._
+import com.fijimf.deepfij.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import org.slf4j.{Logger, LoggerFactory}

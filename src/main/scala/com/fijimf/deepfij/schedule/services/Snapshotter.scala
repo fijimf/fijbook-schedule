@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule.services
+package com.fijimf.deepfij.schedule.services
 
 import cats.effect.{Resource, Sync}
 import cats.implicits._
@@ -7,7 +7,7 @@ import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.s3.model.S3ObjectInputStream
 import com.amazonaws.services.s3.{AmazonS3, AmazonS3ClientBuilder}
 import com.amazonaws.util.IOUtils
-import com.fijimf.deepfi.schedule.model._
+import com.fijimf.deepfij.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.circe

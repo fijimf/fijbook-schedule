@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule
+package com.fijimf.deepfij.schedule
 
 import cats.effect._
 import cats.implicits._

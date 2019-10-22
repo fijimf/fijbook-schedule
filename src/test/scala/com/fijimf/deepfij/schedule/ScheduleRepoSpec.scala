@@ -5,8 +5,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import cats.effect.IO
-import com.fijimf.deepfi.schedule.model._
-import com.fijimf.deepfi.schedule.services.ScheduleRepo
+import com.fijimf.deepfij.schedule.model._
+import com.fijimf.deepfij.schedule.services.ScheduleRepo
 import doobie.implicits._
 
 class ScheduleRepoSpec extends DbIntegrationSpec {

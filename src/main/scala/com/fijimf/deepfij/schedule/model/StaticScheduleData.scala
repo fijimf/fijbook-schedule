@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule.model
+package com.fijimf.deepfij.schedule.model
 
 import io.circe.Json
 import io.circe.generic.JsonCodec

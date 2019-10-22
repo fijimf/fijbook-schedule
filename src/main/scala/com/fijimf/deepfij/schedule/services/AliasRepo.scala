@@ -1,5 +1,5 @@
-package com.fijimf.deepfi.schedule.services
-import com.fijimf.deepfi.schedule.model.Alias
+package com.fijimf.deepfij.schedule.services
+import com.fijimf.deepfij.schedule.model.Alias
 
 trait AliasRepo[F[_]] {
 

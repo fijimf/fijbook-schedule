@@ -1,10 +1,10 @@
-package com.fijimf.deepfi.schedule
+package com.fijimf.deepfij.schedule
 
 import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
-import com.fijimf.deepfi.schedule.model._
-import com.fijimf.deepfi.schedule.services.{AliasRepo, ScheduleRepo, Snapshotter, Updater}
+import com.fijimf.deepfij.schedule.model._
+import com.fijimf.deepfij.schedule.services.{AliasRepo, ScheduleRepo, Snapshotter, Updater}
 import org.http4s.circe.jsonEncoderOf
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityEncoder, HttpRoutes, HttpService}

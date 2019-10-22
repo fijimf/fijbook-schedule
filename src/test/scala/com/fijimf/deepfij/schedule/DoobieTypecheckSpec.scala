@@ -2,7 +2,7 @@ package com.fijimf.deepfij.schedule
 
 import java.time.{LocalDate, LocalDateTime}
 
-import com.fijimf.deepfi.schedule.model.{Alias, Conference, ConferenceMapping, Game, Result, Season, Team}
+import com.fijimf.deepfij.schedule.model.{Alias, Conference, ConferenceMapping, Game, Result, Season, Team}
 
 class DoobieTypecheckSpec extends DbIntegrationSpec {
   val containerName = "doobie-typecheck-spec"

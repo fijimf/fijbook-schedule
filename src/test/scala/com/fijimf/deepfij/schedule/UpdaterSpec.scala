@@ -4,8 +4,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import cats.effect.IO
-import com.fijimf.deepfi.schedule.model.{Alias, Game, Result, Season, Team, UpdateCandidate}
-import com.fijimf.deepfi.schedule.services.{ScheduleRepo, Updater}
+import com.fijimf.deepfij.schedule.model.{Alias, Game, Result, Season, Team, UpdateCandidate}
+import com.fijimf.deepfij.schedule.services.{ScheduleRepo, Updater}
 import doobie.implicits._
 
 class UpdaterSpec extends DbIntegrationSpec {

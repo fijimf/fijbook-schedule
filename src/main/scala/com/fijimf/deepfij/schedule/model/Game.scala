@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule.model
+package com.fijimf.deepfij.schedule.model
 
 import java.sql.Timestamp
 import java.time.{LocalDate, LocalDateTime}

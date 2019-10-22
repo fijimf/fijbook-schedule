@@ -1,8 +1,8 @@
-package com.fijimf.deepfi.schedule
+package com.fijimf.deepfij.schedule
 
 import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, Timer}
 import cats.syntax.semigroupk._
-import com.fijimf.deepfi.schedule.services.{ScheduleRepo, Snapshotter, Updater}
+import com.fijimf.deepfij.schedule.services.{ScheduleRepo, Snapshotter, Updater}
 import doobie.util.transactor.Transactor
 import fs2.Stream
 import org.http4s.server.blaze.BlazeServerBuilder

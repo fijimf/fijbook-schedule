@@ -1,4 +1,4 @@
-package com.fijimf.deepfi.schedule
+package com.fijimf.deepfij.schedule
 
 import cats.Applicative
 import cats.effect.Sync
@@ -13,6 +13,7 @@ package object model {
   implicit def aliasEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Alias] = jsonEncoderOf
 
   implicit def lstAliasEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[Alias]] = jsonEncoderOf
+  implicit def lstAliasEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[Alias]] = jsonOf
 
   implicit def aliasEntityDecoder[F[_] : Sync]: EntityDecoder[F, Alias] = jsonOf
 
@@ -65,4 +66,5 @@ package object model {
 
   implicit def teamEntityDecoder[F[_] : Sync]: EntityDecoder[F, Team] = jsonOf
 
+  implicit def intEntityDecoder[F[_] : Sync]: EntityDecoder[F, Int] = jsonOf
 }

@@ -95,7 +95,7 @@ class Snapshotter[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       aliases <- repo.listAliases()
       conferences <- repo.listConferences()
     } yield {
-      val teamRecords: List[TeamRecord] = teams.map(_.toSnapshotRecord())
+      val teamRecords: List[TeamRecord] = teams.map(_.toSnapshotRecord)
       val aliasRecords: List[AliasRecord] = aliases.flatMap(a => teams.find(t => a.teamId === t.id).toList.map(t => AliasRecord(t.key, a.alias)))
       val conferenceRecords: List[ConferenceRecord] = conferences.map(_.toSnapshotRecord())
       StaticScheduleData(teamRecords, aliasRecords, conferenceRecords).asJson.spaces2

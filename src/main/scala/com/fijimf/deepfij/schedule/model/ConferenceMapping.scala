@@ -2,7 +2,6 @@ package com.fijimf.deepfij.schedule.model
 
 import doobie.implicits._
 import doobie.util.update.Update0
-import io.circe.generic.JsonCodec
 
 final case class ConferenceMapping(id: Long, seasonId: Long, teamId: Long, conferenceId: Long) {
 

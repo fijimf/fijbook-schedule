@@ -15,7 +15,7 @@ object ScheduleServer {
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing", "org.wartremover.warts.Any"))
   def stream[F[_] : ConcurrentEffect](transactor: Transactor[F])(implicit T: Timer[F], C: ContextShift[F]): Stream[F, ExitCode] = {
-    val repo = new ScheduleRepo[F](transactor)
+    val repo: ScheduleRepo[F] = new ScheduleRepo[F](transactor)
     val healthcheckService: HttpRoutes[F] = ScheduleRoutes.healthcheckRoutes(repo)
     val aliasRepoService: HttpRoutes[F] = ScheduleRoutes.aliasRepoRoutes(repo)
     val repoService: HttpRoutes[F] = ScheduleRoutes.scheduleRepoRoutes(repo)

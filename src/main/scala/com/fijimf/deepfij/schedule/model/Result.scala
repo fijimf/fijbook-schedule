@@ -2,7 +2,6 @@ package com.fijimf.deepfij.schedule.model
 
 import doobie.implicits._
 import doobie.util.update.Update0
-import io.circe.generic.JsonCodec
 
 final case class Result(id: Long, gameId: Long, homeScore: Int, awayScore: Int, numPeriods: Int) {
 

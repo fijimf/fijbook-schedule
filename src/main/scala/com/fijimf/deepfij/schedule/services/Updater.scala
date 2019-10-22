@@ -95,7 +95,6 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
   }
 
   def updateGame(g: Game): F[Game] = {
-    import Game.Dao._
     if (g.id < 0) {
       Game.Dao.delete(-g.id).run.transact(xa).map(_ => g)
     } else if (g.id === 0) {

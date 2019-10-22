@@ -7,7 +7,7 @@ import com.fijimf.deepfij.schedule.model._
 import com.fijimf.deepfij.schedule.services.{AliasRepo, ScheduleRepo, Snapshotter, Updater}
 import org.http4s.circe.jsonEncoderOf
 import org.http4s.dsl.Http4sDsl
-import org.http4s.{EntityEncoder, HttpRoutes, HttpService}
+import org.http4s.{EntityEncoder, HttpRoutes}
 import org.slf4j.{Logger, LoggerFactory}
 
 object ScheduleRoutes {

@@ -1,6 +1,5 @@
 package com.fijimf.deepfij.schedule
 
-import cats.effect._
 import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, Resource}
 import com.typesafe.config.{Config, ConfigFactory}

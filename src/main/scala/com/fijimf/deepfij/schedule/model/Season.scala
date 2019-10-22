@@ -4,7 +4,6 @@ import java.time.LocalDateTime
 
 import doobie.implicits._
 import doobie.util.update.Update0
-import io.circe.generic.JsonCodec
 
 final case class Season(id: Long, year: Int) {
 
@@ -28,7 +27,7 @@ object Season {
 
     // A date is in season yyyy id=f it is after 10/31/yyyy-1 and before 5/1/yyyy
     def findByDate(d: LocalDateTime): doobie.Query0[Season] = {
-      val y = d.getMonthValue match {
+      val y: Int = d.getMonthValue match {
         case m if m < 5 => d.getYear
         case m if m > 10 => d.getYear + 1
         case _ => -1

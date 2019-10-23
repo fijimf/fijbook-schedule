@@ -2,6 +2,7 @@ package com.fijimf.deepfij.schedule
 
 import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, Timer}
 import cats.syntax.semigroupk._
+import com.fijimf.deepfij.schedule.routes.{AliasRoutes, ConferenceMappingRoutes, ConferenceRoutes, GameRoutes, ResultRoutes, SeasonRoutes, TeamRoutes}
 import com.fijimf.deepfij.schedule.services.{ScheduleRepo, Snapshotter, Updater}
 import doobie.util.transactor.Transactor
 import fs2.Stream
@@ -17,11 +18,26 @@ object ScheduleServer {
   def stream[F[_] : ConcurrentEffect](transactor: Transactor[F])(implicit T: Timer[F], C: ContextShift[F]): Stream[F, ExitCode] = {
     val repo: ScheduleRepo[F] = new ScheduleRepo[F](transactor)
     val healthcheckService: HttpRoutes[F] = ScheduleRoutes.healthcheckRoutes(repo)
-    val aliasRepoService: HttpRoutes[F] = ScheduleRoutes.aliasRepoRoutes(repo)
-    val repoService: HttpRoutes[F] = ScheduleRoutes.scheduleRepoRoutes(repo)
+    val aliasRepoService: HttpRoutes[F] = AliasRoutes.routes(repo)
+    val conferenceRepoService: HttpRoutes[F] = ConferenceRoutes.routes(repo)
+    val conferenceMappingRepoService: HttpRoutes[F] = ConferenceMappingRoutes.routes(repo)
+    val gameRepoService: HttpRoutes[F] = GameRoutes.routes(repo)
+    val resultRepoService: HttpRoutes[F] = ResultRoutes.routes(repo)
+    val seasonRepoService: HttpRoutes[F] = SeasonRoutes.routes(repo)
+    val teamRepoService: HttpRoutes[F] = TeamRoutes.routes(repo)
     val snapshotterService: HttpRoutes[F] = ScheduleRoutes.snapshotterRoutes(new Snapshotter[F](transactor))
     val updaterService: HttpRoutes[F] = ScheduleRoutes.updaterRoutes(new Updater[F](transactor))
-    val httpApp: HttpApp[F] = (healthcheckService <+> aliasRepoService <+> repoService <+> snapshotterService <+> updaterService).orNotFound
+    val httpApp: HttpApp[F] = (
+      healthcheckService <+>
+        aliasRepoService <+>
+        conferenceRepoService <+>
+        conferenceMappingRepoService <+>
+        gameRepoService <+>
+        resultRepoService <+>
+        seasonRepoService <+>
+        teamRepoService <+>
+        snapshotterService <+>
+        updaterService).orNotFound
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)
     for {
       exitCode <- BlazeServerBuilder[F]

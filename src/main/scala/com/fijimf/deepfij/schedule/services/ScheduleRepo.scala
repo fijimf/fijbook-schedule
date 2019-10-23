@@ -1,5 +1,6 @@
 package com.fijimf.deepfij.schedule.services
 
+import cats.MonadError
 import cats.effect.Sync
 import com.fijimf.deepfij.schedule.model._
 import doobie.implicits._
@@ -7,11 +8,11 @@ import doobie.util.transactor.Transactor
 
 class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with ConferenceRepo[F] with ConferenceMappingRepo[F] with GameRepo[F] with TeamRepo[F] with SeasonRepo[F] with ResultRepo[F] {
 
-  override def insertAlias(a: Alias): F[Alias] = {
+  override def insertAlias(a: Alias)(implicit me: MonadError[F, Throwable]): F[Alias] = {
     import Alias.Dao._
     insert(a)
       .withUniqueGeneratedKeys[Alias](cols: _*)
-      .transact(xa)
+      .transact(xa).exceptSql(ex=>me.raiseError[Alias](ex))
   }
 
   override def updateAlias(a: Alias): F[Alias] = {

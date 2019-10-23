@@ -45,8 +45,8 @@ maintainer in Docker := "Jim Frohnhofer <fijimf@gmail.com>"
 packageSummary in Docker := "REST microservice to handle schedule operations"
 packageDescription := "REST microservice to handle schedule operations"
 
-wartremoverWarnings ++= Warts.allBut(Warts.unsafe:_*)
-//wartremoverErrors ++= Warts.unsafe
+//wartremoverWarnings ++= Warts.allBut(Warts.unsafe:_*)
+wartremoverErrors ++= Warts.unsafe.filter(_ == Wart.ImplicitParameter)
 scalacOptions ++= Seq(
   "-deprecation",
   "-unchecked",

@@ -67,4 +67,5 @@ package object model {
   implicit def teamEntityDecoder[F[_] : Sync]: EntityDecoder[F, Team] = jsonOf
 
   implicit def intEntityDecoder[F[_] : Sync]: EntityDecoder[F, Int] = jsonOf
+  implicit def intEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Int] = jsonEncoderOf
 }

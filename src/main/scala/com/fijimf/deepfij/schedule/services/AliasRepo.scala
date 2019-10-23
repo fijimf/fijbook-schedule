@@ -1,9 +1,10 @@
 package com.fijimf.deepfij.schedule.services
+import cats.MonadError
 import com.fijimf.deepfij.schedule.model.Alias
 
 trait AliasRepo[F[_]] {
 
-  def insertAlias(a: Alias): F[Alias]
+  def insertAlias(a: Alias)(implicit me: MonadError[F, Throwable]): F[Alias]
 
   def updateAlias(c: Alias): F[Alias]
 

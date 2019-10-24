@@ -3,8 +3,9 @@ import cats.MonadError
 import com.fijimf.deepfij.schedule.model.Alias
 
 trait AliasRepo[F[_]] {
+  implicit val me: MonadError[F, Throwable]
 
-  def insertAlias(a: Alias)(implicit me: MonadError[F, Throwable]): F[Alias]
+  def insertAlias(a: Alias): F[Alias]
 
   def updateAlias(c: Alias): F[Alias]
 

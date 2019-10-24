@@ -17,7 +17,9 @@ class AliasSpec extends FunSpec {
   def service[F[_]] (repo: AliasRepo[F])(implicit F: Effect[F]): Kleisli[F, Request[F], Response[F]] = AliasRoutes.routes(repo).orNotFound
 
   val happyPath: AliasRepo[IO] = new AliasRepo[IO] {
-    override def insertAlias(a: Alias)(implicit me: MonadError[IO, Throwable]): IO[Alias] = IO{a.copy(id=1L)}
+
+    val me = implicitly[MonadError[IO, Throwable]]
+    override def insertAlias(a: Alias): IO[Alias] = IO{a.copy(id=1L)}
 
     override def updateAlias(a: Alias): IO[Alias] = IO{a}
 
@@ -29,7 +31,8 @@ class AliasSpec extends FunSpec {
   }
 
   val happyButNotFound: AliasRepo[IO] = new AliasRepo[IO] {
-    override def insertAlias(a: Alias)(implicit me: MonadError[IO, Throwable]): IO[Alias] = IO{a.copy(id=1L)}
+     val me = implicitly[MonadError[IO, Throwable]]
+    override def insertAlias(a: Alias): IO[Alias] = IO{a.copy(id=1L)}
 
     override def updateAlias(a: Alias): IO[Alias] = IO{a}
 
@@ -41,7 +44,9 @@ class AliasSpec extends FunSpec {
   }
 
   val sadSqlPath: AliasRepo[IO] = new AliasRepo[IO] {
-    override def insertAlias(a: Alias)(implicit me: MonadError[IO, Throwable]): IO[Alias] = me.raiseError(new SQLException("test"))
+
+     val me = implicitly[MonadError[IO, Throwable]]
+    override def insertAlias(a: Alias): IO[Alias] = me.raiseError(new SQLException("test"))
 
     override def updateAlias(c: Alias): IO[Alias] = throw new RuntimeException
 

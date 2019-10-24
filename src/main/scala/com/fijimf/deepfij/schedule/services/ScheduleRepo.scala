@@ -8,7 +8,9 @@ import doobie.util.transactor.Transactor
 
 class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with ConferenceRepo[F] with ConferenceMappingRepo[F] with GameRepo[F] with TeamRepo[F] with SeasonRepo[F] with ResultRepo[F] {
 
-  override def insertAlias(a: Alias)(implicit me: MonadError[F, Throwable]): F[Alias] = {
+  val me = implicitly[MonadError[F, Throwable]]
+
+  override def insertAlias(a: Alias): F[Alias] = {
     import Alias.Dao._
     insert(a)
       .withUniqueGeneratedKeys[Alias](cols: _*)

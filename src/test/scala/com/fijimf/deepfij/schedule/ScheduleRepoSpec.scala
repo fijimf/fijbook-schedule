@@ -4,7 +4,8 @@ import java.sql.SQLException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import cats.effect.IO
+import cats.MonadError
+import cats.effect.{IO, Sync}
 import com.fijimf.deepfij.schedule.model._
 import com.fijimf.deepfij.schedule.services.ScheduleRepo
 import doobie.implicits._
@@ -89,6 +90,33 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
           assert(m === 0)
         }).unsafeRunSync()
       }
+
+      it("insert should fail on duplicate alias") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Team.Dao.truncate().run.transact(transactor)
+            g <-repo.insertTeam(georgetown)
+            v <-repo.insertTeam(villanova)
+            _ <- repo.insertAlias(Alias(0L, g.id, "xxx"))
+            _ <- repo.insertAlias(Alias(0L, v.id, "xxx"))
+          } yield {}).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("update should fail on duplicate alias") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Team.Dao.truncate().run.transact(transactor)
+            g <-repo.insertTeam(georgetown)
+            v <-repo.insertTeam(villanova)
+            _ <- repo.insertAlias(Alias(0L, g.id, "xxx"))
+            y <- repo.insertAlias(Alias(0L, v.id, "yyy"))
+            _ <- repo.updateAlias(y.copy(alias = "xxx"))
+          } yield {}).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+
     }
     describe("Conference ops"){
       it("should list conferences"){

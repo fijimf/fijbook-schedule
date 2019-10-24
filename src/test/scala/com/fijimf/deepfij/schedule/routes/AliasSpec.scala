@@ -7,9 +7,8 @@ import cats.data.Kleisli
 import cats.effect.{Effect, IO}
 import com.fijimf.deepfij.schedule.model.Alias
 import com.fijimf.deepfij.schedule.services.AliasRepo
-import org.http4s.{Method, Request, Response, Uri}
 import org.http4s.implicits._
-import org.http4s._
+import org.http4s.{Method, Request, Response, Uri, _}
 import org.scalatest.FunSpec
 
 class AliasSpec extends FunSpec {
@@ -44,17 +43,17 @@ class AliasSpec extends FunSpec {
   }
 
   val sadSqlPath: AliasRepo[IO] = new AliasRepo[IO] {
+    val me = implicitly[MonadError[IO, Throwable]]
 
-     val me = implicitly[MonadError[IO, Throwable]]
-    override def insertAlias(a: Alias): IO[Alias] = me.raiseError(new SQLException("test"))
+    override def insertAlias(a: Alias): IO[Alias] = me.raiseError(new SQLException("I get trapped"))
 
-    override def updateAlias(c: Alias): IO[Alias] = throw new RuntimeException
+    override def updateAlias(c: Alias): IO[Alias] = me.raiseError(new SQLException("I get trapped"))
 
-    override def deleteAlias(id: Long): IO[Int] = throw new RuntimeException
+    override def deleteAlias(id: Long): IO[Int] = me.raiseError(new SQLException("I get trapped"))
 
-    override def listAliases(): IO[List[Alias]] = throw new RuntimeException
+    override def listAliases(): IO[List[Alias]] = me.raiseError(new SQLException("I get trapped"))
 
-    override def findAlias(id: Long): IO[Option[Alias]] = throw new RuntimeException
+    override def findAlias(id: Long): IO[Option[Alias]] = me.raiseError(new SQLException("I get trapped"))
   }
 
   describe("AliasRoutes should handle operations in the happy path ") {
@@ -122,49 +121,35 @@ class AliasSpec extends FunSpec {
     }
   }
   describe("AliasRoutes should handle operations in the sad path ") {
-//    it ("find") {
-//
-//      val request: Request[IO] = Request[IO](method = Method.GET, uri = Uri.uri("/alias/4"))
-//      val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
-//
-//      assert(response.status===Status.Ok)
-//
-//    }
+    it("find") {
+      val request: Request[IO] = Request[IO](method = Method.GET, uri = Uri.uri("/alias/4"))
+      val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
+      assert(response.status === Status.InternalServerError)
+    }
 
-//    it ("list") {
-//      val alias=Alias(0L,23L,"usc")
-//      val request: Request[IO] = Request[IO](method = Method.GET, uri = Uri.uri("/alias"))
-//      val response: Response[IO] = service(happyPath).run(request).unsafeRunSync()
-//
-//      assert(response.status===Status.Ok)
-//      assert(response.as[List[Alias]].unsafeRunSync()===List( Alias(1L,23L,"usc"),Alias(1L,29L,"san-diego")))
-//    }
+    it("list") {
+      val request: Request[IO] = Request[IO](method = Method.GET, uri = Uri.uri("/alias"))
+      val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
+      assert(response.status === Status.InternalServerError)
+    }
 
     it ("insert") {
-      val alias=Alias(0L,23L,"usc")
-      val request: Request[IO] = Request[IO](method = Method.POST, uri = Uri.uri("/alias")).withEntity(alias)
+      val request: Request[IO] = Request[IO](method = Method.POST, uri = Uri.uri("/alias")).withEntity(Alias(0L, 23L, "usc"))
       val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
-
       assert(response.status===Status.InternalServerError)
     }
 
-//    it ("update") {
-//      val alias=Alias(3L,23L,"usc")
-//      val request: Request[IO] = Request[IO](method = Method.POST, uri = Uri.uri("/alias")).withEntity(alias)
-//      val response: Response[IO] = service(happyPath).run(request).unsafeRunSync()
-//
-//      assert(response.status===Status.Ok)
-//      assert(response.as[Alias].unsafeRunSync()===alias)
-//    }
-//
-//    it ("delete") {
-//      import com.fijimf.deepfij.schedule.model._
-//      val request: Request[IO] = Request[IO](method = Method.DELETE, uri = Uri.uri("/alias/1"))
-//      val response: Response[IO] = service(happyPath).run(request).unsafeRunSync()
-//
-//      assert(response.status===Status.Ok)
-//      assert(response.as[Int].unsafeRunSync()===1)
-//    }
+    it("update") {
+      val request: Request[IO] = Request[IO](method = Method.POST, uri = Uri.uri("/alias")).withEntity(Alias(3L, 23L, "usc"))
+      val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
+      assert(response.status === Status.InternalServerError)
+    }
+
+    it("delete") {
+      val request: Request[IO] = Request[IO](method = Method.DELETE, uri = Uri.uri("/alias/1"))
+      val response: Response[IO] = service(sadSqlPath).run(request).unsafeRunSync()
+      assert(response.status === Status.InternalServerError)
+    }
 
   }
 }

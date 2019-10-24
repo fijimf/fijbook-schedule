@@ -23,6 +23,7 @@ package object model {
   implicit def conferenceEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Conference] = jsonEncoderOf
 
   implicit def lstConferenceEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[Conference]] = jsonEncoderOf
+  implicit def lstConferenceEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[Conference]] = jsonOf
 
   implicit def conferenceEntityDecoder[F[_] : Sync]: EntityDecoder[F, Conference] = jsonOf
 
@@ -31,6 +32,7 @@ package object model {
   implicit def conferenceMappingEntityEncoder[F[_] : Applicative]: EntityEncoder[F, ConferenceMapping] = jsonEncoderOf
 
   implicit def lstConferenceMappingEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[ConferenceMapping]] = jsonEncoderOf
+  implicit def lstConferenceMappingEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[ConferenceMapping]] = jsonOf
 
   implicit def conferenceMappingEntityDecoder[F[_] : Sync]: EntityDecoder[F, ConferenceMapping] = jsonOf
 

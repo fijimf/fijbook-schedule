@@ -17,14 +17,14 @@ object ConferenceRoutes {
     import dsl._
     HttpRoutes.of[F] {
       case GET -> Root / "conference" => //TODO potentially add lookup constraints
-        for {
+        (for {
           conferences <- repo.listConferences()
           resp <- Ok(conferences)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case GET -> Root / "conference" / LongVar(id) =>
-        for {
+        (for {
           conference <- repo.findConference(id)
           resp <- conference match {
             case Some(c) => Ok(c)
@@ -32,9 +32,9 @@ object ConferenceRoutes {
           }
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case req@POST -> Root / "conference" =>
-        for {
+        (for {
           c <- req.as[Conference]
           x <- c.id match {
             case 0 => repo.insertConference(c)
@@ -43,14 +43,14 @@ object ConferenceRoutes {
           resp <- Ok(x)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case DELETE -> Root / "conference" / LongVar(id) =>
-        for {
+        (for {
           n <- repo.deleteConference(id)
           resp <- Ok(n)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
     }
   }
 }

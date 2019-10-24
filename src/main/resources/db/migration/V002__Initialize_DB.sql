@@ -38,6 +38,7 @@ CREATE TABLE conference
 );
 
 CREATE UNIQUE INDEX ON conference (key);
+CREATE UNIQUE INDEX ON conference (name);
 
 CREATE TABLE conference_mapping
 (

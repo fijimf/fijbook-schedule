@@ -4,8 +4,7 @@ import java.sql.SQLException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import cats.MonadError
-import cats.effect.{IO, Sync}
+import cats.effect.IO
 import com.fijimf.deepfij.schedule.model._
 import com.fijimf.deepfij.schedule.services.ScheduleRepo
 import doobie.implicits._
@@ -182,6 +181,54 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
 
       }
 
+      it("insert should fail on duplicate key") {
+        val thr: SQLException = intercept[SQLException](
+             (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _<- repo.insertConference(bigEast)
+            _<- repo.insertConference(bigTen.copy(key=bigEast.key))
+          } yield {
+          }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("insert should fail on duplicate name") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _<- repo.insertConference(bigEast)
+            _<- repo.insertConference(bigTen.copy(name=bigEast.name))
+          } yield {
+          }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+
+      it("update should fail on duplicate key") {
+        val thr: SQLException = intercept[SQLException](
+             (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _<- repo.insertConference(bigEast)
+            bt<- repo.insertConference(bigTen)
+            _<- repo.updateConference(bt.copy(key=bigEast.key))
+          } yield {
+          }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("update should fail on duplicate name") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _<- repo.insertConference(bigEast)
+            bt<- repo.insertConference(bigTen)
+            _<- repo.updateConference(bt.copy(name=bigEast.name))
+          } yield {
+          }).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+
     }
     describe("ConferenceMapping ops"){
       it("should list conferenceMappings"){
@@ -276,7 +323,42 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
         }).unsafeRunSync()
       }
 
+      it("insert should fail on duplicate season, team") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _ <- Season.Dao.truncate().run.transact(transactor)
+            _ <- Team.Dao.truncate().run.transact(transactor)
+            t <- repo.insertTeam(georgetown)
+            s <- repo.insertSeason(season)
+            c1 <- repo.insertConference(bigEast)
+            c2 <- repo.insertConference(bigTen)
+            _ <- repo.insertConferenceMapping(ConferenceMapping(0L, s.id, t.id, c1.id))
+            _ <- repo.insertConferenceMapping(ConferenceMapping(0L, s.id, t.id, c2.id))
+            cmList1 <- repo.listConferenceMappings()
+          } yield {}).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
+
+      it("update should fail on duplicate season, team") {
+        val thr: SQLException = intercept[SQLException](
+          (for {
+            _ <- Conference.Dao.truncate().run.transact(transactor)
+            _ <- Season.Dao.truncate().run.transact(transactor)
+            _ <- Team.Dao.truncate().run.transact(transactor)
+            t1 <- repo.insertTeam(georgetown)
+            t2 <- repo.insertTeam(villanova)
+            s <- repo.insertSeason(season)
+            c1 <- repo.insertConference(bigEast)
+            c2 <- repo.insertConference(bigTen)
+            _ <- repo.insertConferenceMapping(ConferenceMapping(0L, s.id, t1.id, c1.id))
+            cm <- repo.insertConferenceMapping(ConferenceMapping(0L, s.id, t2.id, c2.id))
+            _ <- repo.updateConferenceMapping(cm.copy(teamId=t1.id))
+          } yield {}).unsafeRunSync())
+        assert(thr.getMessage.contains("duplicate key value violates unique constraint"))
+      }
     }
+
     describe("Game ops"){
       val time: LocalDateTime = LocalDateTime.now()
       val g = Game(0L, 1L, time.toLocalDate, time, 2L, 3L, None, Some(false), time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))

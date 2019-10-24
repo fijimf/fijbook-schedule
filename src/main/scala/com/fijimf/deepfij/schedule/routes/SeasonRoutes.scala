@@ -4,7 +4,7 @@ import cats.Applicative
 import cats.effect.Sync
 import cats.implicits._
 import com.fijimf.deepfij.schedule.model._
-import com.fijimf.deepfij.schedule.services.{SeasonRepo}
+import com.fijimf.deepfij.schedule.services.SeasonRepo
 import org.http4s.circe.jsonEncoderOf
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityEncoder, HttpRoutes}
@@ -19,14 +19,14 @@ object SeasonRoutes {
     HttpRoutes.of[F] {
 
       case GET -> Root / "season" =>
-        for {
+        (for {
           seasons <- repo.listSeason()
           resp <- Ok(seasons)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case GET -> Root / "season" / LongVar(id) =>
-        for {
+      (for {
           season <- repo.findSeason(id)
           resp <- season match {
             case Some(s) => Ok(s)
@@ -34,9 +34,9 @@ object SeasonRoutes {
           }
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case req@POST -> Root / "season" =>
-        for {
+      (for {
           s <- req.as[Season]
           x <- s.id match {
             case 0 => repo.insertSeason(s)
@@ -45,14 +45,14 @@ object SeasonRoutes {
           resp <- Ok(x)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case DELETE -> Root / "season" / LongVar(id) =>
-        for {
+      (for {
           n <- repo.deleteSeason(id)
           resp <- Ok(n)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
     }
   }
 }

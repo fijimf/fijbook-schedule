@@ -49,6 +49,7 @@ package object model {
   implicit def resultEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Result] = jsonEncoderOf
 
   implicit def listResultEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[Result]] = jsonEncoderOf
+  implicit def listResultEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[Result]] = jsonOf
 
   implicit def resultEntityDecoder[F[_] : Sync]: EntityDecoder[F, Result] = jsonOf
 
@@ -57,6 +58,7 @@ package object model {
   implicit def seasonEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Season] = jsonEncoderOf
 
   implicit def lstSeasonEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[Season]] = jsonEncoderOf
+  implicit def lstSeasonEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[Season]] = jsonOf
 
   implicit def seasonEntityDecoder[F[_] : Sync]: EntityDecoder[F, Season] = jsonOf
 

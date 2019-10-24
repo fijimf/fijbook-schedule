@@ -19,14 +19,14 @@ object ResultRoutes {
     HttpRoutes.of[F] {
 
       case GET -> Root / "result" =>
-        for {
+        (for {
           results <- repo.listResult()
           resp <- Ok(results)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case GET -> Root / "result" / LongVar(id) =>
-        for {
+        (for {
           result <- repo.findResult(id)
           resp <- result match {
             case Some(r) => Ok(r)
@@ -35,9 +35,9 @@ object ResultRoutes {
 
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case req@POST -> Root / "result" =>
-        for {
+        (for {
           r <- req.as[Result]
           x <- r.id match {
             case 0 => repo.insertResult(r)
@@ -46,14 +46,14 @@ object ResultRoutes {
           resp <- Ok(x)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case DELETE -> Root / "result" / LongVar(id) =>
-        for {
+        (for {
           n <- repo.deleteResult(id)
           resp <- Ok(n)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
 
     }
   }

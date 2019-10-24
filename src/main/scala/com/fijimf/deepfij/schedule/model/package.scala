@@ -41,6 +41,7 @@ package object model {
   implicit def gameEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Game] = jsonEncoderOf
 
   implicit def lstGameEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[Game]] = jsonEncoderOf
+  implicit def lstGameEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[Game]] = jsonOf
 
   implicit def gameEntityDecoder[F[_] : Sync]: EntityDecoder[F, Game] = jsonOf
 

@@ -20,14 +20,14 @@ object ConferenceMappingRoutes {
     HttpRoutes.of[F] {
 
       case GET -> Root / "conferenceMapping" =>
-        for {
+        (for {
           cms <- repo.listConferenceMappings()
           resp <- Ok(cms)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case GET -> Root / "conferenceMapping" / LongVar(id) =>
-        for {
+      (for {
           conferenceMapping <- repo.findConferenceMapping(id)
           resp <- conferenceMapping match {
             case Some(cm) => Ok(cm)
@@ -35,9 +35,9 @@ object ConferenceMappingRoutes {
           }
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case req@POST -> Root / "conferenceMapping" =>
-        for {
+      (for {
           cm <- req.as[ConferenceMapping]
           x <- cm.id match {
             case 0 => repo.insertConferenceMapping(cm)
@@ -46,14 +46,14 @@ object ConferenceMappingRoutes {
           resp <- Ok(x)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case DELETE -> Root / "conferenceMapping" / LongVar(id) =>
-        for {
+      (for {
           n <- repo.deleteConferenceMapping(id)
           resp <- Ok(n)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
 
     }
   }

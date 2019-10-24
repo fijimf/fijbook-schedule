@@ -20,14 +20,14 @@ object GameRoutes {
 
 
       case GET -> Root / "game" =>
-        for {
+        (for {
           games <- repo.listGame()
           resp <- Ok(games)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case GET -> Root / "game" / LongVar(id) =>
-        for {
+        (for {
           game <- repo.findGame(id)
           resp <- game match {
             case Some(g) => Ok(g)
@@ -35,9 +35,9 @@ object GameRoutes {
           }
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case req@POST -> Root / "game" =>
-        for {
+        (for {
           g <- req.as[Game]
           x <- g.id match {
             case 0 => repo.insertGame(g)
@@ -46,14 +46,14 @@ object GameRoutes {
           resp <- Ok(x)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
       case DELETE -> Root / "game" / LongVar(id) =>
-        for {
+        (for {
           n <- repo.deleteGame(id)
           resp <- Ok(n)
         } yield {
           resp
-        }
+        }).recoverWith { case thr: Throwable => InternalServerError(thr.getMessage) }
 
 
     }

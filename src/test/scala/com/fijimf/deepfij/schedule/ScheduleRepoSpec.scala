@@ -282,6 +282,38 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
         }).unsafeRunSync()
       }
 
+      it ("should find a conferenceMappings by season"){
+        (for {
+          _ <- Conference.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          t <-repo.insertTeam(georgetown)
+          u <-repo.insertTeam(villanova)
+          s18<-repo.insertSeason(Season(0L,2018))
+          s19<-repo.insertSeason(Season(0L,2019))
+          s20<-repo.insertSeason(Season(0L,2020))
+          c1<-repo.insertConference(bigEast)
+          c2<-repo.insertConference(bigTen)
+
+          _<- repo.insertConferenceMapping(ConferenceMapping(0L, s19.id,t.id,c1.id))
+          _<- repo.insertConferenceMapping(ConferenceMapping(0L, s19.id,u.id,c1.id))
+          _<- repo.insertConferenceMapping(ConferenceMapping(0L, s20.id,t.id,c1.id))
+          _<- repo.insertConferenceMapping(ConferenceMapping(0L, s20.id,u.id,c2.id))
+          cm18<-repo.findConferenceMappingBySeason(s18.id)
+          cm19<-repo.findConferenceMappingBySeason(s19.id)
+          cm20<-repo.findConferenceMappingBySeason(s20.id)
+
+        } yield {
+          assert(cm18.isEmpty)
+          assert(cm19.size===2)
+          assert(cm20.size===2)
+          val map19: Map[Long, Long] = cm19.map(cm => cm.teamId -> cm.conferenceId).toMap
+          val map20: Map[Long, Long] = cm20.map(cm => cm.teamId -> cm.conferenceId).toMap
+          assert(map19.get(t.id)===map20.get(t.id))
+          assert(!(map19.get(u.id)===map20.get(u.id)))
+        }).unsafeRunSync()
+      }
+
       it("should update a conferenceMapping"){
         (for {
           _ <- Conference.Dao.truncate().run.transact(transactor)
@@ -493,6 +525,36 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
           assert(resultx.isEmpty)
         }).unsafeRunSync()
       }
+     it("should find a results by season") {
+        val d20160205 = LocalDateTime.of(2016,2,5,19,0,0)
+        val d20160206 = LocalDateTime.of(2016,2,6,19,0,0)
+        val d20170205 = LocalDateTime.of(2017,2,5,19,0,0)
+        val d20170206 = LocalDateTime.of(2017,2,6,19,0,0)
+        (for {
+          _ <- Team.Dao.truncate().run.transact(transactor)
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- Game.Dao.truncate().run.transact(transactor)
+          t1<-repo.insertTeam(georgetown)
+          t2<-repo.insertTeam(villanova)
+          s15 <- repo.insertSeason(Season(0L, 2015))
+          s16 <- repo.insertSeason(Season(0L, 2016))
+          s17 <- repo.insertSeason(Season(0L, 2017))
+          g1 <- repo.insertGame(Game(0L,s16.id,d20160205.toLocalDate, d20160205,t1.id,t2.id,None, Some(false), "d20160205"))
+          g2 <- repo.insertGame(Game(0L,s16.id,d20160206.toLocalDate, d20160206,t1.id,t2.id,None, Some(false), "d20160206"))
+          g3 <- repo.insertGame(Game(0L,s17.id,d20170205.toLocalDate, d20170205,t1.id,t2.id,None, Some(false), "d20170205"))
+          g4 <- repo.insertGame(Game(0L,s17.id,d20170206.toLocalDate, d20170206,t1.id,t2.id,None, Some(false), "d20170206"))
+          _ <- repo.insertResult(Result(0L, g1.id, 67,89,2))
+          _ <- repo.insertResult(Result(0L, g2.id, 67,89,2))
+          _ <- repo.insertResult(Result(0L, g3.id, 67,89,2))
+          r15 <- repo.findResultsBySeason(s15.id)
+          r16 <- repo.findResultsBySeason(s16.id)
+          r17 <- repo.findResultsBySeason(s17.id)
+        } yield {
+          assert(r15.isEmpty)
+          assert(r16.size===2)
+          assert(r17.size===1)
+        }).unsafeRunSync()
+      }
 
       it("should update a result") {
         (for {
@@ -629,6 +691,34 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
         } yield {
           assert(s1===Some(s))
           assert(sx.isEmpty)
+        }).unsafeRunSync()
+      }
+      it("should find the latest season") {
+        (for {
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- repo.insertSeason(Season(0L, 2016))
+          _ <- repo.insertSeason(Season(0L, 2017))
+          _ <- repo.insertSeason(Season(0L, 2020))
+          _ <- repo.insertSeason(Season(0L, 2018))
+          latest <- repo.findLatestSeason()
+        } yield {
+          assert(latest.isDefined)
+          assert(latest.map(_.year) === Some(2020))
+        }).unsafeRunSync()
+      }
+      it("should find a season by year") {
+        (for {
+          _ <- Season.Dao.truncate().run.transact(transactor)
+          _ <- repo.insertSeason(Season(0L, 2016))
+          _ <- repo.insertSeason(Season(0L, 2017))
+          _ <- repo.insertSeason(Season(0L, 2020))
+          _ <- repo.insertSeason(Season(0L, 2018))
+          s2020 <- repo.findSeasonByYear(2020)
+          s2019 <- repo.findSeasonByYear(2019)
+        } yield {
+          assert(s2020.isDefined)
+          assert(s2020.map(_.year) === Some(2020))
+          assert(s2019.isEmpty)
         }).unsafeRunSync()
       }
 

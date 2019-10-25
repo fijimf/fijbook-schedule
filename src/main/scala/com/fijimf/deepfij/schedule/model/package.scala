@@ -79,4 +79,17 @@ package object model {
   implicit val scheduleDecoder: Decoder[Schedule] = deriveDecoder[Schedule]
   implicit def scheduleEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Schedule] = jsonEncoderOf
 
+  implicit val updateCandidateEncoder: ObjectEncoder[UpdateCandidate] = deriveEncoder[UpdateCandidate]
+  implicit val updateCandidateDecoder: Decoder[UpdateCandidate] = deriveDecoder[UpdateCandidate]
+  implicit def updateCandidateEntityEncoder[F[_] : Applicative]: EntityEncoder[F, UpdateCandidate] = jsonEncoderOf
+  implicit def updateCandidateEntityDecoder[F[_] : Sync]: EntityDecoder[F, UpdateCandidate] = jsonOf
+
+  implicit def lstUpdateCandidateEntityEncoder[F[_] : Applicative]: EntityEncoder[F, List[UpdateCandidate]] = jsonEncoderOf
+  implicit def lstUpdateCandidateEntityDecoder[F[_] : Sync]: EntityDecoder[F, List[UpdateCandidate]] = jsonOf
+
+  implicit val scrapeResultEncoder: ObjectEncoder[ScrapeResult] = deriveEncoder[ScrapeResult]
+  implicit val scrapeResultDecoder: Decoder[ScrapeResult] = deriveDecoder[ScrapeResult]
+  implicit def scrapeResultEntityEncoder[F[_] : Applicative]: EntityEncoder[F, ScrapeResult] = jsonEncoderOf
+  implicit def scrapeResultEntityDecoder[F[_] : Sync]: EntityDecoder[F, ScrapeResult] = jsonOf
+
 }

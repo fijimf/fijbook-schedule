@@ -32,6 +32,10 @@ class SeasonSpec extends FunSpec {
     override def listSeason(): IO[List[Season]] = IO{ egSeasons.toList}
 
     override def findSeason(id: Long): IO[Option[Season]] = IO{egSeasons.find(_.id===id)}
+
+    override def findLatestSeason(): IO[Option[Season]] =IO{ Some(egSeasons.last)}
+
+    override def findSeasonByYear(y: Int): IO[Option[Season]] = IO{egSeasons.find(_.year===y)}
   }
 
   val happyButNotFound: SeasonRepo[IO] = new SeasonRepo[IO] {
@@ -45,6 +49,10 @@ class SeasonSpec extends FunSpec {
     override def listSeason(): IO[List[Season]] = IO{ List.empty[Season]}
 
     override def findSeason(id: Long): IO[Option[Season]] = IO{None}
+
+    override def findLatestSeason(): IO[Option[Season]] =IO{ None  }
+
+    override def findSeasonByYear(y: Int): IO[Option[Season]] = IO {None}
   }
 
   val sadSqlPath: SeasonRepo[IO] = new SeasonRepo[IO] {
@@ -59,6 +67,10 @@ class SeasonSpec extends FunSpec {
     override def listSeason(): IO[List[Season]] = me.raiseError(new SQLException("I get trapped"))
 
     override def findSeason(id: Long): IO[Option[Season]] = me.raiseError(new SQLException("I get trapped"))
+
+    override def findLatestSeason(): IO[Option[Season]] = me.raiseError(new SQLException("I get trapped"))
+
+    override def findSeasonByYear(y: Int): IO[Option[Season]] = me.raiseError(new SQLException("I get trapped"))
   }
 
   describe("SeasonRoutes should handle operations in the happy path ") {

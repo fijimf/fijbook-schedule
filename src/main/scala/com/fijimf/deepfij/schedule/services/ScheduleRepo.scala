@@ -76,6 +76,8 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
 
   override def findConferenceMapping(id: Long): F[Option[ConferenceMapping]] = ConferenceMapping.Dao.find(id).option.transact(xa)
 
+  override def findConferenceMappingBySeason(id: Long) :F[List[ConferenceMapping]] = ConferenceMapping.Dao.findBySeason(id).to[List].transact(xa)
+
   override def insertGame(g: Game): F[Game] = {
     import Game.Dao._
     insert(g)
@@ -97,6 +99,8 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
   override def listGame(): F[List[Game]] = Game.Dao.list().to[List].transact(xa)
 
   override def findGame(id: Long): F[Option[Game]] = Game.Dao.find(id).option.transact(xa)
+
+  override def findGamesBySeason(id: Long):F[List[Game]] = Game.Dao.findBySeason(id).to[List].transact(xa)
 
   override def insertResult(r: Result): F[Result] = {
     import Result.Dao._
@@ -120,6 +124,8 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
 
   override def findResult(id: Long): F[Option[Result]] = Result.Dao.find(id).option.transact(xa)
 
+  override def findResultsBySeason(id: Long):F[List[Result]] = Result.Dao.findBySeason(id).to[List].transact(xa)
+
   override def insertSeason(s: Season): F[Season] = {
     import Season.Dao._
     insert(s)
@@ -141,6 +147,11 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
   override def listSeason(): F[List[Season]] = Season.Dao.list().to[List].transact(xa)
 
   override def findSeason(id: Long): F[Option[Season]] = Season.Dao.find(id).option.transact(xa)
+
+  override def findLatestSeason(): F[Option[Season]] = Season.Dao.findLatest().option.transact(xa)
+
+  override def findSeasonByYear(y:Int): F[Option[Season]] = Season.Dao.findByYear(y).option.transact(xa)
+
 
   override def insertTeam(t: Team): F[Team] = {
     import Team.Dao._

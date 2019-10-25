@@ -74,4 +74,9 @@ package object model {
 
   implicit def intEntityDecoder[F[_] : Sync]: EntityDecoder[F, Int] = jsonOf
   implicit def intEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Int] = jsonEncoderOf
+
+  implicit val scheduleEncoder: ObjectEncoder[Schedule] = deriveEncoder[Schedule]
+  implicit val scheduleDecoder: Decoder[Schedule] = deriveDecoder[Schedule]
+  implicit def scheduleEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Schedule] = jsonEncoderOf
+
 }

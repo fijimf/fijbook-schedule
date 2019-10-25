@@ -12,4 +12,6 @@ trait GameRepo[F[_]] {
   def listGame(): F[List[Game]]
 
   def findGame(id: Long): F[Option[Game]]
+
+  def findGamesBySeason(id: Long): F[List[Game]]
 }

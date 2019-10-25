@@ -33,6 +33,8 @@ class GameSpec extends FunSpec {
     override def listGame(): IO[List[Game]] = IO{ egGames.toList}
 
     override def findGame(id: Long): IO[Option[Game]] = IO{egGames.find(_.id===id)}
+
+    override def findGamesBySeason(id: Long): IO[List[Game]] = IO{egGames.filter(_.seasonId===id)}
   }
 
   val happyButNotFound: GameRepo[IO] = new GameRepo[IO] {
@@ -46,6 +48,8 @@ class GameSpec extends FunSpec {
     override def listGame(): IO[List[Game]] = IO{ List.empty[Game]}
 
     override def findGame(id: Long): IO[Option[Game]] = IO{None}
+
+    override def findGamesBySeason(id: Long): IO[List[Game]] = IO{List.empty[Game]}
   }
 
   val sadSqlPath: GameRepo[IO] = new GameRepo[IO] {
@@ -60,6 +64,8 @@ class GameSpec extends FunSpec {
     override def listGame(): IO[List[Game]] = me.raiseError(new SQLException("I get trapped"))
 
     override def findGame(id: Long): IO[Option[Game]] = me.raiseError(new SQLException("I get trapped"))
+
+    override def findGamesBySeason(id: Long): IO[List[Game]] = me.raiseError(new SQLException("I get trapped"))
   }
 
   describe("GameRoutes should handle operations in the happy path ") {

@@ -25,6 +25,7 @@ object Game {
   }
 
   object Dao extends AbstractDao {
+
     implicit val localDateTimeMeta: Meta[LocalDateTime] = Meta[Timestamp].imap(ts => ts.toLocalDateTime)(ldt => Timestamp.valueOf(ldt))
 
     val cols: Array[String] = Array("id", "season_id", "date", "time", "home_team_id", "away_team_id", "location", "is_neutral", "load_key")
@@ -41,6 +42,8 @@ object Game {
             RETURNING """ ++ colFr).update
 
     def find(id: Long): doobie.Query0[Game] = (baseQuery ++ fr" WHERE id = $id").query[Game]
+
+    def findBySeason(id: Long): doobie.Query0[Game] = (baseQuery ++ fr" WHERE season_id = $id").query[Game]
 
     def findByLoadKey(loadKey: String): doobie.Query0[(Game, Option[Result])] =
       (fr"""SELECT """ ++

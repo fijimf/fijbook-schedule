@@ -10,6 +10,7 @@ final case class ConferenceMapping(id: Long, seasonId: Long, teamId: Long, confe
 object ConferenceMapping {
 
   object Dao extends AbstractDao {
+
     val cols: Array[String] = Array("id", "season_id", "team_id", "conference_id")
     val tableName="conference_mapping"
 
@@ -24,6 +25,9 @@ object ConferenceMapping {
             RETURNING """++colFr).update
 
     def find(id: Long): doobie.Query0[ConferenceMapping] = (baseQuery ++ fr" WHERE id = $id").query[ConferenceMapping]
+
+    def findBySeason(seasonId: Long): doobie.Query0[ConferenceMapping] =
+      (baseQuery ++ fr" WHERE season_id = $seasonId").query[ConferenceMapping]
 
     def list(): doobie.Query0[ConferenceMapping] = baseQuery.query[ConferenceMapping]
 

@@ -12,12 +12,18 @@ final case class Season(id: Long, year: Int) {
 object Season {
 
   object Dao extends AbstractDao {
+
     val cols: Array[String] = Array("id", "year")
     val tableName: String = "season"
+
 
     def insert(s: Season): Update0 = (fr"INSERT INTO season(year) VALUES (${s.year}) RETURNING "++colFr).update
 
     def find(id: Long): doobie.Query0[Season] = (baseQuery ++fr" WHERE id = $id").query[Season]
+
+    def findLatest(): doobie.Query0[Season] = (baseQuery ++fr" ORDER BY year DESC LIMIT 1").query[Season]
+
+    def findByYear(y:Int): doobie.Query0[Season] = (baseQuery ++fr" WHERE year = $y").query[Season]
 
     def list(): doobie.Query0[Season] = baseQuery.query[Season]
 

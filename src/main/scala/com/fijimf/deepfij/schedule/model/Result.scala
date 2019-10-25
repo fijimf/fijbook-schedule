@@ -10,6 +10,7 @@ final case class Result(id: Long, gameId: Long, homeScore: Int, awayScore: Int, 
 object Result {
 
   object Dao extends AbstractDao {
+
     val cols: Array[String] = Array("id", "game_id", "home_score", "away_score", "num_periods")
     val tableName = "result"
 
@@ -24,6 +25,9 @@ object Result {
              RETURNING """ ++ colFr).update
 
     def find(id: Long): doobie.Query0[Result] = (baseQuery ++ fr" WHERE id = $id").query[Result]
+
+    def findBySeason(seasonId: Long): doobie.Query0[Result] =
+      (prefixedQuery("r") ++ fr" INNER JOIN game g ON r.game_id=g.id WHERE g.season_id = $seasonId").query[Result]
 
     def list(): doobie.Query0[Result] = baseQuery.query[Result]
 

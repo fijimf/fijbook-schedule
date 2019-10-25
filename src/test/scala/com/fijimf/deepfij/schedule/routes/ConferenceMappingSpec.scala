@@ -32,6 +32,8 @@ class ConferenceMappingSpec extends FunSpec {
     override def listConferenceMappings(): IO[List[ConferenceMapping]] = IO{ egConferenceMappings.toList}
 
     override def findConferenceMapping(id: Long): IO[Option[ConferenceMapping]] = IO{egConferenceMappings.find(_.id===id)}
+
+    override def findConferenceMappingBySeason(id: Long): IO[List[ConferenceMapping]] = IO{egConferenceMappings.filter(_.seasonId===id)}
   }
 
   val happyButNotFound: ConferenceMappingRepo[IO] = new ConferenceMappingRepo[IO] {
@@ -45,6 +47,8 @@ class ConferenceMappingSpec extends FunSpec {
     override def listConferenceMappings(): IO[List[ConferenceMapping]] = IO{ List.empty[ConferenceMapping]}
 
     override def findConferenceMapping(id: Long): IO[Option[ConferenceMapping]] = IO{None}
+
+    override def findConferenceMappingBySeason(id: Long): IO[List[ConferenceMapping]] = IO{List.empty[ConferenceMapping]}
   }
 
   val sadSqlPath: ConferenceMappingRepo[IO] = new ConferenceMappingRepo[IO] {
@@ -59,6 +63,8 @@ class ConferenceMappingSpec extends FunSpec {
     override def listConferenceMappings(): IO[List[ConferenceMapping]] = me.raiseError(new SQLException("I get trapped"))
 
     override def findConferenceMapping(id: Long): IO[Option[ConferenceMapping]] = me.raiseError(new SQLException("I get trapped"))
+
+    override def findConferenceMappingBySeason(id: Long): IO[List[ConferenceMapping]] = me.raiseError(new SQLException("I get trapped"))
   }
 
   describe("ConferenceMappingRoutes should handle operations in the happy path ") {

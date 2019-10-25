@@ -32,6 +32,8 @@ class ResultSpec extends FunSpec {
     override def listResult(): IO[List[Result]] = IO{ egResults.toList}
 
     override def findResult(id: Long): IO[Option[Result]] = IO{egResults.find(_.id===id)}
+
+    override def findResultsBySeason(id: Long): IO[List[Result]] = IO{egResults.toList}
   }
 
   val happyButNotFound: ResultRepo[IO] = new ResultRepo[IO] {
@@ -45,6 +47,8 @@ class ResultSpec extends FunSpec {
     override def listResult(): IO[List[Result]] = IO{ List.empty[Result]}
 
     override def findResult(id: Long): IO[Option[Result]] = IO{None}
+
+    override def findResultsBySeason(id: Long): IO[List[Result]] = IO{List.empty[Result]}
   }
 
   val sadSqlPath: ResultRepo[IO] = new ResultRepo[IO] {
@@ -59,6 +63,8 @@ class ResultSpec extends FunSpec {
     override def listResult(): IO[List[Result]] = me.raiseError(new SQLException("I get trapped"))
 
     override def findResult(id: Long): IO[Option[Result]] = me.raiseError(new SQLException("I get trapped"))
+
+    override def findResultsBySeason(id: Long): IO[List[Result]] = me.raiseError(new SQLException("I get trapped"))
   }
 
   describe("ResultRoutes should handle operations in the happy path ") {

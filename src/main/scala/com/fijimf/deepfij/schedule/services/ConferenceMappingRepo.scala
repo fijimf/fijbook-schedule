@@ -12,4 +12,6 @@ trait ConferenceMappingRepo[F[_]] {
   def listConferenceMappings(): F[List[ConferenceMapping]]
 
   def findConferenceMapping(id: Long): F[Option[ConferenceMapping]]
+
+  def findConferenceMappingBySeason(id: Long) :F[List[ConferenceMapping]]
 }

@@ -12,4 +12,6 @@ trait ResultRepo[F[_]] {
   def listResult(): F[List[Result]]
 
   def findResult(id: Long): F[Option[Result]]
+
+  def findResultsBySeason(id: Long):F[List[Result]]
 }

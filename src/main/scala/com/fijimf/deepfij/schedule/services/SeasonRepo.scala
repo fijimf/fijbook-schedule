@@ -12,4 +12,8 @@ trait SeasonRepo[F[_]] {
   def listSeason(): F[List[Season]]
 
   def findSeason(id: Long): F[Option[Season]]
+
+  def findLatestSeason(): F[Option[Season]]
+
+  def findSeasonByYear(y:Int): F[Option[Season]]
 }

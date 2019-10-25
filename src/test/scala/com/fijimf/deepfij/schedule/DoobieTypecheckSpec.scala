@@ -82,6 +82,10 @@ class DoobieTypecheckSpec extends DbIntegrationSpec {
         check(Season.Dao.find(99L))
       }
 
+      it("findLatest should typecheck") {
+        check(Season.Dao.findLatest())
+      }
+
       it("findByDate should typecheck") {
         check(Season.Dao.findByDate(LocalDateTime.now()))
       }

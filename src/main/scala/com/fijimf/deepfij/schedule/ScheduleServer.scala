@@ -25,6 +25,7 @@ object ScheduleServer {
     val resultRepoService: HttpRoutes[F] = ResultRoutes.routes(repo)
     val seasonRepoService: HttpRoutes[F] = SeasonRoutes.routes(repo)
     val teamRepoService: HttpRoutes[F] = TeamRoutes.routes(repo)
+    val scheduleService: HttpRoutes[F] = routes.ScheduleRoutes.routes(repo)
     val snapshotterService: HttpRoutes[F] = ScheduleRoutes.snapshotterRoutes(new Snapshotter[F](transactor))
     val updaterService: HttpRoutes[F] = ScheduleRoutes.updaterRoutes(new Updater[F](transactor))
     val httpApp: HttpApp[F] = (
@@ -36,6 +37,7 @@ object ScheduleServer {
         resultRepoService <+>
         seasonRepoService <+>
         teamRepoService <+>
+        scheduleService <+>
         snapshotterService <+>
         updaterService).orNotFound
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)

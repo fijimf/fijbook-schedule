@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS result;
+DROP TABLE IF EXISTS game;
+DROP TABLE IF EXISTS conference_mapping;
+DROP TABLE IF EXISTS conference;
+DROP TABLE IF EXISTS alias;
+DROP TABLE IF EXISTS team;
+DROP TABLE IF EXISTS season;
+
+TRUNCATE TABLE flyway_schema_history_schedule;

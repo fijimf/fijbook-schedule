@@ -33,7 +33,7 @@ CREATE TABLE conference
     id        BIGSERIAL    PRIMARY KEY,
     key       VARCHAR(32)  NOT NULL,
     name      VARCHAR(144) NOT NULL,
-    long_name VARCHAR(256) NOT NULL,
+    level     VARCHAR(64) NOT NULL,
     logo_url  VARCHAR(256) NULL
 );
 

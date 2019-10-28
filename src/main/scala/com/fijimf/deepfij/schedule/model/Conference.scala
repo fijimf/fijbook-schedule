@@ -3,22 +3,22 @@ package com.fijimf.deepfij.schedule.model
 import doobie.implicits._
 import doobie.util.update.Update0
 
-final case class Conference(id: Long, key: String, name: String, longName: String, logoUrl: Option[String]) {
-  def toSnapshotRecord(): ConferenceRecord = ConferenceRecord(key, name,longName,logoUrl)
+final case class Conference(id: Long, key: String, name: String, level: String, logoUrl: Option[String]) {
+  def toSnapshotRecord(): ConferenceRecord = ConferenceRecord(key, name, level, logoUrl)
 }
 
 object Conference {
 
   object Dao extends AbstractDao {
-    val cols: Array[String] = Array("id", "key", "name", "long_name", "logo_url")
+    val cols: Array[String] = Array("id", "key", "name", "level", "logo_url")
     val tableName: String = "conference"
     def insert(c: Conference): Update0 =
-      (fr"""INSERT INTO conference(key,name,long_name,logo_url)
-             VALUES (${c.key}, ${c.name}, ${c.longName}, ${c.logoUrl})
+      (fr"""INSERT INTO conference(key,name,level,logo_url)
+             VALUES (${c.key}, ${c.name}, ${c.level}, ${c.logoUrl})
              RETURNING """ ++ colFr).update
 
     def update(c: Conference): Update0 =
-      (fr"""UPDATE conference set  key=${c.key}, name=${c.name}, long_name=${c.longName}, logo_url=${c.logoUrl}
+      (fr"""UPDATE conference set  key=${c.key}, name=${c.name}, level=${c.level}, logo_url=${c.logoUrl}
             WHERE id= ${c.id}
             RETURNING """ ++ colFr).update
 

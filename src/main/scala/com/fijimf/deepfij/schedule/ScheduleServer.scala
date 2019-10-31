@@ -43,7 +43,7 @@ object ScheduleServer {
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)
     for {
       exitCode <- BlazeServerBuilder[F]
-        .bindHttp(port = 8073, host = "0.0.0.0")
+        .bindHttp(port = 8074, host = "0.0.0.0")
         .withHttpApp(finalHttpApp)
         .serve
     } yield {

@@ -128,8 +128,9 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       ht <- loadTeam(pg.homeKey)
       at <- loadTeam(pg.awayKey)
       s <- findSeason(pg.dateTime)
+      key = GameKey(pg.date.toEpochDay, s.id, ht.id, at.id)
     } yield {
-      val key = GameKey(pg.date.toEpochDay, s.id, ht.id, at.id)
+      log.debug(s"$key")
       key -> (pg.toGame(0L, key, loadKey), pg.toOptionResult(0L, 0L))
     }).value.map(_.toList)
   }

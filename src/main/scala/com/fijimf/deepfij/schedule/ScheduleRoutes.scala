@@ -41,7 +41,7 @@ object ScheduleRoutes {
           up <- req.as[ScrapeResult]
           mods <- u.updateGamesAndResults(up.updates, up.loadKey)
           _ <- F.delay(mods.foreach { case (g, or) => log.info(s"$g") })
-          resp <- Ok(s"${mods.size} changes were made")
+          resp <- Ok(mods.size)
         } yield {
           resp
         }

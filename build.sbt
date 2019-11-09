@@ -11,7 +11,7 @@ lazy val root = (project in file("."))
   .settings(
     organization := "com.fijimf.deepfij",
     name := "fijbook-schedule",
-    version := "1.0.1",
+    version := "1.0.2",
     scalaVersion := "2.12.8",
     libraryDependencies ++= Seq(
       "org.http4s"      %% "http4s-blaze-server" % Http4sVersion,

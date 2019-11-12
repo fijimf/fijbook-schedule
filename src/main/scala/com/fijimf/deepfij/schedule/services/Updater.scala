@@ -48,14 +48,15 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     val inserts: Set[GameKey] = updateKeys.diff(existingKeys)
     val deletes: Set[GameKey] = existingKeys.diff(updateKeys)
     val updates: Set[GameKey] = updateKeys.intersect(existingKeys)
-
+    log.info(s"${inserts.size} inserts, ${deletes.size} deletes, ${updates.size} updates ")
+    inserts.foreach(println(_))
     for {
       is <- inserts.flatMap(k => updatesWithKeys.get(k)).map((insert _).tupled).toList.sequence
       ds <- deletes.flatMap(k => gamesWithKeys.get(k)).map((delete _).tupled).toList.sequence
       us <- (for {
         k <- updates
         n <- updatesWithKeys.get(k)
-        o <- gamesWithKeys.get(k) if n.neqv(o)
+        o <- gamesWithKeys.get(k) if updateNeeded(o,n)
       } yield {
         update(o._1, n._1, o._2, n._2)
       }).toList.sequence
@@ -63,6 +64,18 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       is ++ ds ++ us
     }
   }
+
+  def updateNeeded(oldPair: (Game, Option[Result]), newPair: (Game, Option[Result])): Boolean = {
+    val (oldGame, oldRes) = oldPair
+    val (newGame, newRes) = newPair
+    val augmentedGame: Game = newGame.copy(id = oldGame.id)
+    val augmentedRes: Option[Result] = newRes.map(_.copy(
+      id = oldRes.map(_.id).getOrElse(0),
+      gameId = oldRes.map(_.gameId).getOrElse(0)
+    ))
+    !(oldGame === augmentedGame && oldRes === augmentedRes)
+  }
+
 
   def insert(game: Game, res: Option[Result]): F[(Game, Option[Result])] = {
     for {
@@ -110,7 +123,7 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
   private def optResultUpdate(gameId:Long, o: Option[Result], p: Option[Result]): F[Option[Result]] = {
     (o, p) match {
       case (Some(o1), Some(p1)) =>
-        Result.Dao.update(p1.copy(id = o1.id)).withUniqueGeneratedKeys[Result](Result.Dao.cols: _ *).transact(xa).map(Some(_))
+        Result.Dao.update(p1.copy(id = o1.id, gameId = o1.gameId)).withUniqueGeneratedKeys[Result](Result.Dao.cols: _ *).transact(xa).map(Some(_))
       case (Some(o1), None) =>
         Result.Dao.delete(o1.id).run.transact(xa).map(_ => Option.empty[Result])
       case (None, Some(p1)) =>
@@ -130,7 +143,7 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
       s <- findSeason(pg.dateTime)
       key = GameKey(pg.date.toEpochDay, s.id, ht.id, at.id)
     } yield {
-      log.debug(s"$key")
+      log.info(s"$pg => $key")
       key -> (pg.toGame(0L, key, loadKey), pg.toOptionResult(0L, 0L))
     }).value.map(_.toList)
   }
@@ -139,7 +152,11 @@ final case class Updater[F[_]](xa: Transactor[F])(implicit F: Sync[F]) {
     for {
       gs <- Game.Dao.findByLoadKey(loadKey).to[List].transact(xa)
     } yield {
-      gs.map(t => GameKey(t._1.date.toEpochDay, t._1.seasonId, t._1.homeTeamId, t._1.awayTeamId) -> t).toMap
+      gs.map(t => {
+        val key: GameKey = GameKey(t._1.date.toEpochDay, t._1.seasonId, t._1.homeTeamId, t._1.awayTeamId)
+        log.info(s"=> $key")
+        key -> t
+      }).toMap
     }
   }
 

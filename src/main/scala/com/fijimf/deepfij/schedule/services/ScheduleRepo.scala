@@ -10,6 +10,10 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
 
   val me = implicitly[MonadError[F, Throwable]]
 
+  def healthcheck:F[Boolean] = {
+    doobie.FC.isValid(2 /*timeout in seconds*/).transact(xa)
+  }
+
   override def insertAlias(a: Alias): F[Alias] = {
     import Alias.Dao._
     insert(a)

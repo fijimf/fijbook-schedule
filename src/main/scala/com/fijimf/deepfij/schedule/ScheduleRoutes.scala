@@ -5,9 +5,8 @@ import cats.effect.Sync
 import cats.implicits._
 import com.fijimf.deepfij.schedule.model._
 import com.fijimf.deepfij.schedule.services.{ScheduleRepo, Snapshotter, Updater}
-import io.circe.{Decoder, ObjectEncoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import org.http4s.circe.jsonEncoderOf
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{EntityDecoder, EntityEncoder, HttpRoutes}
 import org.slf4j.{Logger, LoggerFactory}
@@ -17,6 +16,10 @@ object ScheduleRoutes {
 
   val log: Logger = LoggerFactory.getLogger(ScheduleRoutes.getClass)
 
+  case class Healthy(healthy:Boolean)
+  implicit val healthyEncoder: Encoder.AsObject[Healthy] = deriveEncoder[Healthy]
+  implicit def healthyEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Healthy] = jsonEncoderOf
+
   implicit def intEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Int] = jsonEncoderOf
 
   def healthcheckRoutes[F[_]](r: ScheduleRepo[F])(implicit F: Sync[F]): HttpRoutes[F] = {
@@ -25,7 +28,8 @@ object ScheduleRoutes {
     HttpRoutes.of[F] {
       case GET -> Root / "healthcheck" =>
         for {
-          resp <- Ok()
+          healthy<-r.healthcheck
+          resp <- Ok(Healthy(healthy))
         } yield {
           resp
         }

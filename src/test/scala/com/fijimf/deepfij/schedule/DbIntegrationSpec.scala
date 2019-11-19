@@ -1,7 +1,6 @@
 package com.fijimf.deepfij.schedule
 
 import java.sql.DriverManager
-import java.util
 
 import cats.effect.{ContextShift, IO, Resource}
 import com.spotify.docker.client.DockerClient.ListContainersParam
@@ -50,10 +49,10 @@ abstract class DbIntegrationSpec extends FunSpec with BeforeAndAfterAll with Mat
       })
 
     val hostConfig: HostConfig = {
-      val hostPorts = new util.ArrayList[PortBinding]
+      val hostPorts = new java.util.ArrayList[PortBinding]
       hostPorts.add(PortBinding.of("0.0.0.0", port))
 
-      val portBindings = new util.HashMap[String, util.List[PortBinding]]
+      val portBindings = new java.util.HashMap[String, java.util.List[PortBinding]]
       portBindings.put("5432/tcp", hostPorts)
       HostConfig.builder.portBindings(portBindings).build
     }
@@ -90,6 +89,8 @@ abstract class DbIntegrationSpec extends FunSpec with BeforeAndAfterAll with Mat
     docker.killContainer(containerId)
     docker.removeContainer(containerId)
   }
+
+
 
   val txResource: Resource[IO, HikariTransactor[IO]] =
     for {

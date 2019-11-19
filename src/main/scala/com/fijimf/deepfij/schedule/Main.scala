@@ -4,30 +4,27 @@ import java.sql.{Connection, DriverManager}
 
 import cats.implicits._
 import cats.effect.{ExitCode, IO, IOApp, Resource, Timer}
-import com.fijimf.deepfij.schedule.services.Updater
 import com.typesafe.config.{Config, ConfigFactory}
 import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import org.flywaydb.core.Flyway
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.annotation.tailrec
 import scala.concurrent.duration._
 
 object Main extends IOApp {
   val log: Logger =LoggerFactory.getLogger(Main.getClass)
-  val conf: Resource[IO, Config] = {
-    val alloc: IO[Config] = IO.delay(ConfigFactory.load("application.conf"))
+  val config: IO[Config] = IO.delay(ConfigFactory.load())
+
+  val resourceConf: Resource[IO, Config] = {
     val free: Config => IO[Unit] = (c: Config) => IO {}
-    Resource.make(alloc)(free)
+    Resource.make(config)(free)
   }
-
   val transactor: Resource[IO, HikariTransactor[IO]] = createTransactor
-
 
   private def createTransactor: Resource[IO, HikariTransactor[IO]] = {
     for {
-      cf <- conf
+      cf <- resourceConf
       driver: String = cf.getString("fijbook.schedule.db.driver")
       url: String = cf.getString("fijbook.schedule.db.url")
       user: String = cf.getString("fijbook.schedule.db.user")
@@ -64,8 +61,9 @@ object Main extends IOApp {
     transactor.use { xa =>
       for {
         _ <- initDB(xa)
+        port <- config.map(_.getInt("fijbook.schedule.port"))
         exitCode <- ScheduleServer
-          .stream[IO](xa)
+          .stream[IO](xa, port)
           .compile[IO, IO, ExitCode]
           .drain
           .as(ExitCode.Success)

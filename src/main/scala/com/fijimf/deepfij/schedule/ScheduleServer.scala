@@ -15,7 +15,7 @@ import org.http4s.{HttpApp, HttpRoutes}
 object ScheduleServer {
 
   @SuppressWarnings(Array("org.wartremover.warts.Nothing", "org.wartremover.warts.Any"))
-  def stream[F[_] : ConcurrentEffect](transactor: Transactor[F])(implicit T: Timer[F], C: ContextShift[F]): Stream[F, ExitCode] = {
+  def stream[F[_] : ConcurrentEffect](transactor: Transactor[F], port:Int)(implicit T: Timer[F], C: ContextShift[F]): Stream[F, ExitCode] = {
     val repo: ScheduleRepo[F] = new ScheduleRepo[F](transactor)
     val healthcheckService: HttpRoutes[F] = ScheduleRoutes.healthcheckRoutes(repo)
     val aliasRepoService: HttpRoutes[F] = AliasRoutes.routes(repo)
@@ -43,7 +43,7 @@ object ScheduleServer {
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)
     for {
       exitCode <- BlazeServerBuilder[F]
-        .bindHttp(port = 8074, host = "0.0.0.0")
+        .bindHttp(port = port, host = "0.0.0.0")
         .withHttpApp(finalHttpApp)
         .serve
     } yield {

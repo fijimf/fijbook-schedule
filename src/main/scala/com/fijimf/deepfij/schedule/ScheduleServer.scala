@@ -45,6 +45,7 @@ object ScheduleServer {
       exitCode <- BlazeServerBuilder[F]
         .bindHttp(port = port, host = "0.0.0.0")
         .withHttpApp(finalHttpApp)
+        .withBanner(Banner.banner)
         .serve
     } yield {
       exitCode

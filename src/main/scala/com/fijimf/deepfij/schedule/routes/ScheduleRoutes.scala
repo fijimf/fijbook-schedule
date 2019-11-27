@@ -40,6 +40,8 @@ object ScheduleRoutes {
     }
 
     HttpRoutes.of[F] {
+      case GET -> Root / "root" =>
+        Ok(repo.loadScheduleRoot())
       case GET -> Root / "schedule" =>
         routeScheduleRequest(repo.findLatestSeason())
       case GET -> Root / "schedule" / IntVar(year) =>

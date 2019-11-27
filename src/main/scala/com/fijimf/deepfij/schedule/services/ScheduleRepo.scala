@@ -2,6 +2,7 @@ package com.fijimf.deepfij.schedule.services
 
 import cats.MonadError
 import cats.effect.Sync
+import cats.implicits._
 import com.fijimf.deepfij.schedule.model._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
@@ -179,5 +180,18 @@ class ScheduleRepo[F[_] : Sync](xa: Transactor[F]) extends AliasRepo[F] with Con
 
   override def findTeam(id: Long): F[Option[Team]] = Team.Dao.find(id).option.transact(xa)
 
+
+  def loadScheduleRoot(): F[ScheduleRoot] = {
+    for {
+      teams <- listTeam()
+      conferences <- listConferences()
+      seasons <- listSeason()
+      conferenceMappings <- listConferenceMappings()
+      games <- listGame()
+      results <- listResult()
+    } yield {
+      ScheduleRoot(teams, conferences, seasons, conferenceMappings, games, results)
+    }
+  }
 
 }

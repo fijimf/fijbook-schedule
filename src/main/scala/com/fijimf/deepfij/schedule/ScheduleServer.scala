@@ -4,6 +4,7 @@ import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, Timer}
 import cats.syntax.semigroupk._
 import com.fijimf.deepfij.schedule.routes.{AliasRoutes, ConferenceMappingRoutes, ConferenceRoutes, GameRoutes, ResultRoutes, SeasonRoutes, TeamRoutes}
 import com.fijimf.deepfij.schedule.services.{ScheduleRepo, Snapshotter, Updater}
+import com.fijimf.deepfij.schedule.util.Banner
 import doobie.util.transactor.Transactor
 import fs2.Stream
 import org.http4s.server.blaze.BlazeServerBuilder

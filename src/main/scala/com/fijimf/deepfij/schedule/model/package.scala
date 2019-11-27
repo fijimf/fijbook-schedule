@@ -78,6 +78,12 @@ package object model {
   implicit val scheduleEncoder: Encoder.AsObject[Schedule] = deriveEncoder[Schedule]
   implicit val scheduleDecoder: Decoder[Schedule] = deriveDecoder[Schedule]
   implicit def scheduleEntityEncoder[F[_] : Applicative]: EntityEncoder[F, Schedule] = jsonEncoderOf
+  implicit def scheduleEntityDecoder[F[_] : Sync]: EntityDecoder[F, Schedule] = jsonOf
+
+  implicit val scheduleRootEncoder: Encoder.AsObject[ScheduleRoot] = deriveEncoder[ScheduleRoot]
+  implicit val scheduleRootDecoder: Decoder[ScheduleRoot] = deriveDecoder[ScheduleRoot]
+  implicit def scheduleRootEntityEncoder[F[_] : Applicative]: EntityEncoder[F, ScheduleRoot] = jsonEncoderOf
+  implicit def scheduleRootEntityDecoder[F[_] : Sync]: EntityDecoder[F, ScheduleRoot] = jsonOf
 
   implicit val updateCandidateEncoder: Encoder.AsObject[UpdateCandidate] = deriveEncoder[UpdateCandidate]
   implicit val updateCandidateDecoder: Decoder[UpdateCandidate] = deriveDecoder[UpdateCandidate]

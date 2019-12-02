@@ -18,6 +18,16 @@ case class ScheduleRoot
   val teamByKey: Map[String, Team] = teams.map(t => t.key -> t).toMap
   val conferenceById: Map[Long, Conference] = conferences.map(c => c.id -> c).toMap
   val conferenceByKey: Map[String, Conference] = conferences.map(c => c.key -> c).toMap
+  val conferenceMapping: Map[Long, Map[Long, Conference]] = {
+    conferenceMappings
+      .groupBy(_.seasonId)
+      .mapValues(cms => {
+        cms.flatMap(cm => {
+          conferenceById.get(cm.conferenceId)
+            .map(conf => cm.teamId -> conf)
+        }).toMap
+      })
+  }
   val seasonById: Map[Long, Season] = seasons.map(s => s.id -> s).toMap
   val seasonByYear: Map[Int, Season] = seasons.map(s => s.year -> s).toMap
   val gamesBySeason: Long => List[Game] = games.groupBy(_.seasonId).withDefaultValue(List.empty[Game])
@@ -32,6 +42,26 @@ case class ScheduleRoot
       }).toMap
     }
     }
+  }
+  val resultsByGame: Map[Long, Result] = results.map(r => r.gameId -> r).toMap
+
+  def gamesForTeam(t: Team, s: Season): List[Game] = {
+    games.filter(g => isPlaying(t, g) && g.seasonId === s.id)
+  }
+
+  def gamesForTeamWithResults(t: Team, s: Season): List[(Game, Option[Result])] = {
+    withResults(gamesForTeam(t, s))
+  }
+
+  def withResults(gs: List[Game]): List[(Game, Option[Result])] = gs.map(g => g -> resultsByGame.get(g.id))
+
+  def conferenceStandings(c: Conference, s: Season): ConferenceStandings = {
+    ConferenceStandings(c, teamsByConference(s)(c).map(t => {
+      val teamGames: List[(Game, Option[Result])] = withResults(gamesForTeam(t, s))
+      val confRecord: WonLossRecord = WonLossRecord.from(t, teamGames.filter(q => isConferenceGame(q._1)))
+      val overallRecord: WonLossRecord = WonLossRecord.from(t, teamGames)
+      StandingsRow(t, confRecord, overallRecord)
+    }))
   }
 
   def dateToSeason(d:LocalDate):Option[Season] = {
@@ -66,18 +96,9 @@ case class ScheduleRoot
     case Some(r) if r.homeScore > r.awayScore => Some(t.id === g.awayTeamId)
     case None => None
   }
-}
 
-case class TeamPage
-(
-  t:Team,
-  s:Season,
-  d:LocalDate,
-  games:List[(Game,Option[Result])],
-  conferenceStandings:ConferenceStandings,
-  overallRecord:WonLossRecord,
-  conferenceRecord:WonLossRecord
-)
+
+}
 
 case class ConferenceStandings(conference: Conference, rows: List[StandingsRow])
 
@@ -105,5 +126,24 @@ case class WonLossRecord(wins: Int, losses: Int) extends Ordered[WonLossRecord] 
     val b: Int = r.wins - wins
     if (a === 0) b else a
   }
+
+  def addWin: WonLossRecord = copy(wins + 1, losses)
+
+  def addLoss: WonLossRecord = copy(wins, losses + 1)
 }
 
+object WonLossRecord {
+  def from(t: Team, grs: List[(Game, Option[Result])]): WonLossRecord = {
+    grs.foldLeft(WonLossRecord(0, 0)) { case (wl: WonLossRecord, gr: (Game, Option[Result])) =>
+      gr._2 match {
+        case Some(res) =>
+          if (res.homeScore > res.awayScore) {
+            if (t.id === gr._1.homeTeamId) wl.addWin else wl.addLoss
+          } else {
+            if (t.id === gr._1.awayTeamId) wl.addWin else wl.addLoss
+          }
+        case None => wl
+      }
+    }
+  }
+}

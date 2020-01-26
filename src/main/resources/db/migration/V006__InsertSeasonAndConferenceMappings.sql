@@ -1,3 +1,10 @@
+insert into season(year) values(2020);
+insert into season(year) values(2019);
+insert into season(year) values(2018);
+insert into season(year) values(2017);
+insert into season(year) values(2016);
+insert into season(year) values(2015);
+
 insert into conference_mapping(season_id, team_id, conference_id) select a.id, b.id, c.id from season a cross join team b cross join conference c where b.key = 'loyola-maryland'  and  c.key ='patriot-league';
 insert into conference_mapping(season_id, team_id, conference_id) select a.id, b.id, c.id from season a cross join team b cross join conference c where b.key = 'holy-cross'  and  c.key ='patriot-league';
 insert into conference_mapping(season_id, team_id, conference_id) select a.id, b.id, c.id from season a cross join team b cross join conference c where b.key = 'colgate'  and  c.key ='patriot-league';

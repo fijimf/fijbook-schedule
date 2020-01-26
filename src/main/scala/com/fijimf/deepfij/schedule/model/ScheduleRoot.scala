@@ -2,6 +2,7 @@ package com.fijimf.deepfij.schedule.model
 
 import java.time.LocalDate
 
+import cats.Eq
 import cats.implicits._
 
 case class ScheduleRoot
@@ -14,6 +15,7 @@ case class ScheduleRoot
   results: List[Result]
 ) {
 
+  implicit val eqFoo: Eq[LocalDate] = Eq.fromUniversalEquals
   val teamById: Map[Long, Team] = teams.map(t => t.id -> t).toMap
   val teamByKey: Map[String, Team] = teams.map(t => t.key -> t).toMap
   val conferenceById: Map[Long, Conference] = conferences.map(c => c.id -> c).toMap
@@ -98,6 +100,15 @@ case class ScheduleRoot
   }
 
 
+  def today():LocalDate = LocalDate.now()
+
+  def currentSeason():Option[Season]=dateToSeason(today())
+
+  def gamesForDate(date:LocalDate):List[Game]= {
+    dateToSeason(date).map(s=>gamesBySeason(s.id).filter(_.date === date)).getOrElse(List.empty[Game])
+  }
+
+  def gamesForDateWithResults(date:LocalDate) = withResults(gamesForDate(date))
 }
 
 case class ConferenceStandings(conference: Conference, rows: List[StandingsRow])

@@ -42,11 +42,12 @@ object ScheduleServer {
         snapshotterService <+>
         updaterService).orNotFound
     val finalHttpApp: HttpApp[F] = Logger.httpApp[F](logHeaders = true, logBody = true)(httpApp)
+    val host = "0.0.0.0"
     for {
       exitCode <- BlazeServerBuilder[F]
-        .bindHttp(port = port, host = "0.0.0.0")
+        .bindHttp(port = port, host = host)
         .withHttpApp(finalHttpApp)
-        .withBanner(Banner.banner)
+        .withBanner(Banner.banner(host, port))
         .serve
     } yield {
       exitCode

@@ -13,7 +13,7 @@ lazy val root = (project in file("."))
   .settings(
     organization := "com.fijimf.deepfij",
     name := "fijbook-schedule",
-    version := "1.0.2f",
+    version := "1.0.2g",
     scalaVersion := "2.12.8",
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
     buildInfoPackage := "com.fijimf.deepfij.schedule",

@@ -18,8 +18,8 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
     val georgetown = Team(0L, "georgetown", "Georgetown", "Hoyas", "", "blue", "gray")
     val villanova = Team(0L, "villanova", "Villanova", "Wildcats", "", "blue", "")
     val season = Season(0L, 2014)
-    val bigEast = Conference(0L, "big-east", "Big East", "The Big East Conference", Some("http://Blah.blah.com/logo.png"))
-    val bigTen = Conference(0L, "big-10", "Big Ten", "The Big Ten Conference", Some("http://Blah.blah.com/logo.png"))
+    val bigEast = Conference(0L, "big-east", "Big East", "The Big East Conference","Low Major", Some("http://Blah.blah.com/logo.png"))
+    val bigTen = Conference(0L, "big-10", "Big Ten", "The Big Ten Conference", "Low Major", Some("http://Blah.blah.com/logo.png"))
 
     describe("Alias ops") {
       it("should list all aliases") {
@@ -143,7 +143,7 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
       it ("should find a conferences"){
         (for {
           _ <- Conference.Dao.truncate().run.transact(transactor)
-          c<- repo.insertConference(Conference(0L, "pac12","Pac-12", "The Pac-12 Conference", Some("http://Blah.blah.com/logo.png")))
+          c<- repo.insertConference(Conference(0L, "pac12","Pac-12", "The Pac-12 Conference", "High Major", Some("http://Blah.blah.com/logo.png")))
           c1<-repo.findConference(c.id)
           cx<-repo.findConference(-999L)
         } yield {
@@ -155,7 +155,7 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
       it("should update a conferences"){
         (for {
           _ <- Conference.Dao.truncate().run.transact(transactor)
-          c<- repo.insertConference(Conference(0L, "big12","Big-12", "The Big-12 Conference", Some("http://Blah.blah.com/logo.png")))
+          c<- repo.insertConference(Conference(0L, "big12","Big-12", "The Big-12 Conference", "High Major",Some("http://Blah.blah.com/logo.png")))
           c1<-repo.findConference(c.id)
           c2<-repo.updateConference(c.copy(name="Big Twelve"))
           c3<-repo.findConference(c.id)
@@ -169,7 +169,7 @@ class ScheduleRepoSpec extends DbIntegrationSpec {
       it("should delete a conferences"){
         (for {
           _ <- Conference.Dao.truncate().run.transact(transactor)
-          c<- repo.insertConference(Conference(0L, "big-west","Big West", "The Big West Conference", Some("http://Blah.blah.com/logo.png")))
+          c<- repo.insertConference(Conference(0L, "big-west","Big West", "The Big West Conference", "High Major",Some("http://Blah.blah.com/logo.png")))
           c1<-repo.findConference(c.id)
           n<-repo.deleteConference(c.id)
           c3<-repo.findConference(c.id)

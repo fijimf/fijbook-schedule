@@ -193,7 +193,7 @@ class DoobieTypecheckSpec extends DbIntegrationSpec {
     describe("Conference.Dao") {
 
       it("insert should typecheck") {
-        check(Conference.Dao.insert(Conference(0L, "big-east", "Big East", "The Big East Conference", None)))
+        check(Conference.Dao.insert(Conference(0L, "big-east", "Big East", "The Big East Conference","High Major", None)))
       }
 
       it("list should typecheck") {
@@ -209,7 +209,7 @@ class DoobieTypecheckSpec extends DbIntegrationSpec {
       }
 
       it("update should typecheck") {
-        check(Conference.Dao.update(Conference(1L, "big-east", "Big East", "The Big East Conference", None)))
+        check(Conference.Dao.update(Conference(1L, "big-east", "Big East", "The Big East Conference","High Major", None)))
       }
 
       it("truncate should typecheck") {

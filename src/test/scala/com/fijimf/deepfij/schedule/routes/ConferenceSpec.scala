@@ -16,8 +16,8 @@ class ConferenceSpec extends FunSpec {
   def service[F[_]] (repo: ConferenceRepo[F])(implicit F: Effect[F]): Kleisli[F, Request[F], Response[F]] = ConferenceRoutes.routes(repo).orNotFound
 
   val egConferences: NonEmptyList[Conference] = NonEmptyList.of(
-    Conference(1L,"big-east","Big East", "The Big East Conference",Some("xxx")),
-    Conference(2L,"big-12","Big XII", "The Big XII Conference",Some("xxx"))
+    Conference(1L,"big-east","Big East", "The Big East Conference","High Major", Some("xxx")),
+    Conference(2L,"big-12","Big XII", "The Big XII Conference","Mid-Major", Some("xxx"))
   )
 
   val happyPath: ConferenceRepo[IO] = new ConferenceRepo[IO] {

@@ -16,8 +16,8 @@ final case class AliasRecord(teamKey: String, alias: String) {
   def toAlias(teamId:Long): Alias =Alias(0L, teamId, alias)
 }
 
-final case class ConferenceRecord(key: String, name: String, longName: String, logoUrl: Option[String]) {
-  def toConference: Conference =Conference(0L, key, name, longName, logoUrl)
+final case class ConferenceRecord(key: String, name: String, shortName:String, longName: String, logoUrl: Option[String]) {
+  def toConference: Conference =Conference(0L, key, name, shortName,  longName, logoUrl)
 }
 
 object StaticScheduleData {

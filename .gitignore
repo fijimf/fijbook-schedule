@@ -4,4 +4,5 @@
 /target/
 /target/scala-2.12/classes/
 /target/scala-2.12/test-classes/
-/buildinfo.properties
+/library/buildinfo.properties
+/server/buildinfo.properties

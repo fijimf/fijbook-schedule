@@ -9,7 +9,7 @@ val TypesafeConfVersion = "1.3.4"
 val FlywayVersion = "6.0.3"
 
 ThisBuild / organization := "com.fijimf.deepfij"
-ThisBuild / version := "1.0.2g"
+ThisBuild / version := "1.1.0"
 ThisBuild / scalaVersion := "2.12.8"
 
 ThisBuild / libraryDependencies := Seq(

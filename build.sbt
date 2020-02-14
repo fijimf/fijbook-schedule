@@ -56,6 +56,9 @@ ThisBuild / scalacOptions ++= Seq(
 )
 
 lazy val root = (project in file("."))
+  .settings(
+    name:="fijbook-schedule-proj"
+  )
   .aggregate(library, server)
 
 lazy val server = (project in file("server"))
@@ -78,6 +81,7 @@ lazy val library = (project in file("library"))
     buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, buildInfoBuildNumber),
     buildInfoPackage := "com.fijimf.deepfij.schedule",
     buildInfoOptions := Seq(BuildInfoOption.BuildTime, BuildInfoOption.ToJson),
+    isSnapshot := true,
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.10.3"),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.0")
   )

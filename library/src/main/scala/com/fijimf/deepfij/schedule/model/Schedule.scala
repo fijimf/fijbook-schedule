@@ -7,6 +7,7 @@ import cats.implicits._
 import cats.{Applicative, Eq}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
+import org.apache.commons.codec.digest.DigestUtils
 import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
 
@@ -18,6 +19,15 @@ case class Schedule(season: Season, teams: List[Team], conferences: List[Confere
   val conferenceById: Map[Long, Conference] = conferences.map(c => c.id -> c).toMap
   val conferenceByKey: Map[String, Conference] = conferences.map(c => c.key -> c).toMap
   val resultsByGame: Map[Long, Result] = results.map(r => r.gameId -> r).toMap
+
+  def digest:String = DigestUtils.md5Hex(
+    season.toString +
+      teams.map(_.toString).mkString(",") +
+      conferences.map(_.toString).mkString(",") +
+      conferenceMapping.map(_.toString).mkString(",") +
+      games.map(_.toString).mkString(",") +
+      results.map(_.toString).mkString(",")
+  )
 
   def gamesForTeam(t: Team): List[Game] = {
     games.filter(g => isPlaying(t, g))
